@@ -1,8 +1,16 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(harminv, 0.2)
-AM_INIT_AUTOMAKE
+AC_INIT(harminv, 1.0, stevenj@alum.mit.edu)
+AM_INIT_AUTOMAKE(1.6)
 AC_CONFIG_SRCDIR(harminv.c)
 AM_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
+
+# Shared-library version number; indicates api compatibility, and is
+# not the same as the "public" version number.  (Don't worry about this
+# except for public releases.)
+SHARED_VERSION_INFO="1:0:0"
+AC_SUBST(SHARED_VERSION_INFO)
+AM_ENABLE_SHARED(no) dnl shared libs cause too many headaches to be default
 
 # Checks for programs.
 AC_PROG_CC
@@ -16,7 +24,7 @@ AC_F77_WRAPPERS
 
 # Add lots of compiler warnings to check for if we are using gcc:
 # (The variable $GCC is set to "yes" by AC_PROG_CC if we are using gcc.)
-if test "$GCC" = "yes"; then
+if test "$GCC" = "yes" && test "$USE_MAINTAINER_MODE" = yes; then
 	CFLAGS="$CFLAGS -Wall -W -Wbad-function-cast -Wcast-qual -Wpointer-arith -Wcast-align -pedantic"
 fi
 
@@ -74,16 +82,21 @@ fi # C has complex keyword
 
 fi # $with_cxx = no
 
-if test "$with_cxx" = "yes" -o "$have_c_complex" = "no"; then
-	AC_PROG_CXX
-	CC="$CXX"
-	CFLAGS="$CXXFLAGS"
-fi
-
 if test "$have_c_complex" = "yes"; then
 	AC_CHECK_FUNCS(carg)
 fi
 
+###########################################################################
+
+AC_PROG_CXX
+if test "$with_cxx" = "yes" -o "$have_c_complex" = "no"; then
+	CC="$CXX"
+	CFLAGS="$CXXFLAGS"
+fi
+
+###########################################################################
+
+AC_PROG_LIBTOOL                                                                                
 ###########################################################################
 
 # Checks for header files.

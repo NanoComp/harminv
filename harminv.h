@@ -18,58 +18,45 @@
 #ifndef HARMINV_H
 #define HARMINV_H
 
-/* Require C99 complex number support; this is just too painful
-   without it.  Alternatively, use the complex<double> STL class in
-   C++. */
-
-#include <complex.h>
-
-#include "config.h"
-
 /**************************************************************************/
 
-#ifdef __cplusplus
-typedef complex<double> cmplx;
-#  define I cmplx(0,1)
-#  define creal(c) real(c)
-#  define cimag(c) imag(c)
-#  define cabs(c) abs(c)
-#  define carg(c) arg(c)
-#  define cexp(c) exp(c)
-#  define csqrt(c) sqrt(c)
+#if defined(__cplusplus)
+#  include <complex>
+extern "C" {
+typedef std::complex<double> harminv_complex;
+
+#elif defined(_Complex_I) && defined(complex) && defined(I)
+/* C99 <complex.h> header was included before harminv.h */
+typedef double _Complex harminv_complex;
+
 #else
-typedef double complex cmplx;
-#  ifndef HAVE_CARG  /* Cray doesn't have this for some reason */
-#    define carg(c) atan2(cimag(c), creal(c))
-#  endif
+typedef double harminv_complex[2];
 #endif
 
-typedef struct harminv_data_struct {
-     const cmplx *c;
-     int n, K, J, nfreqs;
-     double fmin, fmax;
-     cmplx *z;
-     cmplx *U0, *U1;
-     cmplx *B, *u;  /* eigen-solutions of U1*B = u*U0*B */
-} *harminv_data;
+typedef struct harminv_data_struct *harminv_data;
 
 /**************************************************************************/
 
 extern harminv_data harminv_data_create(int n,
-					const cmplx *signal,
+					const harminv_complex *signal,
 					double fmin, double fmax, int nf);
 extern void harminv_data_destroy(harminv_data d);
 
-extern void harminv_solve(harminv_data d);
+extern void harminv_solve_once(harminv_data d);
 extern void harminv_solve_again(harminv_data d);
+extern void harminv_solve(harminv_data d);
 
 extern int harminv_get_num_freqs(harminv_data d);
 extern double harminv_get_freq(harminv_data d, int k);
 extern double harminv_get_decay(harminv_data d, int k);
 
 extern double *harminv_compute_frequency_errors(harminv_data d);
-extern cmplx *harminv_compute_amplitudes(harminv_data d);
+extern harminv_complex *harminv_compute_amplitudes(harminv_data d);
 
 /**************************************************************************/
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* HARMINV_H */

@@ -20,7 +20,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "harminv.h"
+#include "harminv-int.h"
 #include "check.h"
 #include "copyright.h"
 
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
 
 	  hd = harminv_data_create(n, data, fmin*dt, fmax*dt, nf);
 	  
-	  harminv_solve(hd);
+	  harminv_solve_once(hd);
 	  prev_nf = cur_nf = harminv_get_num_freqs(hd);
 
 	  /* keep re-solving as long as spurious solutions are eliminated */

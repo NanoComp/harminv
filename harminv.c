@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "harminv.h"
+#include "harminv-int.h"
 #include "check.h"
 
 /**************************************************************************/
@@ -432,7 +432,7 @@ static void solve_eigenvects(int n, cmplx *A, cmplx *V, cmplx *v)
 /* Solve the eigenvalue problem U1 b = u U0 b, where b is the eigenvector
    and u is the eigenvalue.  u = exp(iwt - at) then contains both the
    frequency and the decay constant. */
-void harminv_solve(harminv_data d)
+void harminv_solve_once(harminv_data d)
 {
      int J, i, one=1;
      cmplx zone = 1.0, zzero = 0.0;
@@ -530,7 +530,23 @@ void harminv_solve_again(harminv_data d)
      d->nfreqs = 0;
      d->B = d->u = NULL;
 
+     harminv_solve_once(d);
+}
+
+/**************************************************************************/
+
+/* keep re-solving as long as spurious solutions are eliminated */
+void harminv_solve(harminv_data d)
+{
+     int prev_nf, cur_nf;
+
      harminv_solve(d);
+     cur_nf = harminv_get_num_freqs(d);
+     do {
+	  prev_nf = cur_nf;
+	  harminv_solve_again(d);
+	  cur_nf = harminv_get_num_freqs(d);
+     } while (cur_nf < prev_nf);
 }
 
 /**************************************************************************/

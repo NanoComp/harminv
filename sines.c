@@ -22,7 +22,7 @@
 
 #include "config.h"
 #include "check.h"
-#include "harminv.h"
+#include "harminv-int.h"
 #include "copyright.h"
 
 #ifdef HAVE_UNISTD_H
