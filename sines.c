@@ -39,6 +39,7 @@ int verbose = 0;
 void usage(FILE *f)
 {
      fprintf(f, "Usage: sines [options] <freq>...\n"
+	     "Note that Im[freq] is the decay rate, or its inverse for -T.\n"
 	     "Options: \n"
 	     "         -h : this help message\n"
              "         -V : print version number and copyright\n"
