@@ -209,14 +209,18 @@ int main(int argc, char **argv)
 	  prev_nf = cur_nf = harminv_get_num_freqs(hd);
 
 	  /* keep re-solving as long as spurious solutions are eliminated */
-	  if (verbose)
+	  if (verbose) {
 	       printf("# harminv number of solution frequencies = %d", cur_nf);
+	       fflush(stdout);
+	  }
 	  do {
 	       prev_nf = cur_nf;
 	       harminv_solve_again(hd);
 	       cur_nf = harminv_get_num_freqs(hd);
-	       if (verbose)
+	       if (verbose) {
 		    printf(", then %d", cur_nf);
+		    fflush(stdout);
+	       }
 	  } while (cur_nf < prev_nf);
 	  if (verbose)
 	       printf("\n");

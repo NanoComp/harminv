@@ -1,0 +1,153 @@
+.\" Copyright (c) 2000 Massachusetts Institute of Technology
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+.\"
+.TH HARMINV 1 "June 4, 2000" "harminv" "harminv"
+.SH NAME
+harminv \- extract oscillation frequencies from time-series data
+.SH SYNOPSIS
+.B harminv
+[\fIOPTION\fR]... [\fIfreq-min\fR-\fIfreq-max\fR]...
+.SH DESCRIPTION
+.PP
+." Add any additional description here
+\fBharminv\fR is a program designed to solve the problem of "harmonic
+inversion:" given a time series consisting of a sum of sinusoids
+("modes"), extract their frequencies and amplitudes.  It can also
+handle the case of exponentially-decaying sinusoids, in which case it
+extracts their decay rates as well.  It is able to achieve greater
+accuracy and robustness than Fourier-transform methods because of its
+assumption of a specific form for the input.
+
+It uses a "low-storage filter-diagonalization" (LSFD) algorithm, as
+described in V. A. Mandelshtam and H. S. Taylor, "Harmonic inversion
+of time signals," \fIJ. Chem. Phys.\fR \fB107\fR, 6756 (1997).  See
+also erratum, \fIibid\fR \fB109\fR, 4128 (1998).
+.SH INPUT
+\fBharminv\fR reads in a sequence of real or complex numbers from standard
+input, as well as command-line arguments indicating one or more
+frequency ranges to search, and outputs the modes that it extracts
+from the data.  (It preferentially finds modes in the frequency range
+you specify, but may sometimes find additional modes outside of that
+range.)  The data should correspond to equally-spaced time intervals,
+but need not be a power of two or anything like that.
+
+Complex numbers in the input should be expressed in the format
+\fIRE\fR+\fIIM\fRi (no whitespace).  Otherwise, whitespace is ignored.
+Also, comments beginning with "#" and extending to the end of the line
+are ignored.
+
+A typical invocation is something like
+.IP "" 4
+harminv -t 0.02 1-5 < input.dat
+.PP
+which reads a sequence of samples, spaced at 0.02 time intervals (in
+ms, say, corresponding to 50 kHz), and searches for modes in the
+frequency range 1-5 kHz.  (See below on units.)
+.SH OUTPUT
+\fBharminv\fR writes four comma-delimited columns to standard output, one
+line for each mode: frequency, decay constant, Q, amplitude, phase,
+and error.  Each mode corresponds to a function of the form:
+
+\fIamplitude\fR * exp[-i (2 pi \fIfrequency\fR t - \fIphase\fR) - \fIdecay\fR t]
+
+Here, i is sqrt(-1), t is the time (see below for units), and the
+other parameters in the output columns are:
+
+.TP
+.B frequency
+The frequency of the mode.  If you don't recognize that from the
+expression above, you should recall Euler's formula: exp(i x) = cos(x)
++ i sin(x).  Note that for complex data, there is a distinction between
+positive and negative frequencies.
+.TP
+.B decay constant
+The exponential decay constant, indicated by
+.I decay
+in the above formula.  The inverse of this is often called the
+"lifetime" of the mode. The "half-life" is ln(2)/\fIdecay\fR.
+.TP
+.B Q
+A conventional, dimensionless expression of the decay lifetime: Q = pi
+|\fIfrequency\fI| / \fIdecay\fR.  Q is the number of periods for the
+"energy" in the mode (the squared amplitude) to decay by exp(-2 pi).
+Equivalently, if you look at the power spectrum (|Fourier
+transform|^2), Q is the width of peak at half maximum as a fraction of
+the center frequency.
+.TP
+.B amplitude
+The (real, positive) amplitude of the sinusoids.
+.TP
+.B phase
+The phase shift (in radians) of the sinusoids, as given by the formula
+above.
+.TP
+.B error
+An estimate of the degree of confidence in the mode information
+(larger error means less confidence).  If your data are very clean,
+then this is an approximate upper bound on the absolute error in both
+the frequency and decay constant.  Otherwise (e.g. if the modes
+aren't exactly exponentially decaying), the direct interpretation of
+this number is less certain.  In any case, modes with errors much
+larger than the modes with the smallest errors may be spurious (due to
+the fact that your data don't exactly fit the assumed model).
+.SH UNITS
+The frequency (and decay) values, both input and output, are specified
+in units of 1/time, where the units of time are determined by the
+sampling interval \fIdt\fR (the time between consecutive inputs).
+\fIdt\fR is by default 1, unless you specify it with the
+.B -t
+.I dt
+option.  Note that the frequency (as defined above), is the usual
+1/period; it is not the angular frequency.
+.SH OPTIONS
+.TP
+.B -h
+Display help on the command-line options and usage.
+.TP
+.B -V
+Print the version number and copyright info for \fBharminv\fR.
+.TP
+.B -v
+Enable verbose output, printed to standard output as comment lines
+(starting with a "#" character).  Also, any "#" comments in the input
+are echoed to the output.
+.TP
+.B -T
+Specify period-ranges instead of frequency-ranges on the command line
+(in units of time corresponding to those specified by \fB-t\fR).  The
+output is still frequency and not period, however.
+.TP
+\fB\-t\fR \fIdt\fR
+Specify the sampling interval \fIdt\fR; this determines the units of
+time used throughout the input and output.  Defaults to 1.0.
+.TP
+\fB\-f\fR \fInf\fR
+
+Specify the "spectral density," essentially the number of frequencies
+to look for modes nearby within the frequency range.  This should be
+at least as great as the number of modes you expect to find, and
+usually you should just set it to a much greater number.  \fInf\fR
+must be at least 2, and defaults to 100.
+
+Don't set it to something too large, however: the computation time
+scales as O(N * \fInf\fR + \fInf\fR^3), where N is the number of data
+points.  Also, there may be numerical problems if \fInf\fR is too
+large.
+.SH BUGS
+Send bug reports to S. G. Johnson, stevenj@alum.mit.edu.
+.SH AUTHORS
+Written by Steven G. Johnson.  Copyright (c) 2000 by the Massachusetts
+Institute of Technology.
