@@ -38,7 +38,7 @@
    the sinusoids near a given frequency interval, described in:
 
    V. A. Mandelshtam and H. S. Taylor, "Harmonic inversion of time
-   signals," J. Chem. Phys., vol. 107, no. 17, p. 6756-6769 (Nov. 1
+   signals," J. Chem. Phys., vol. 107, no. 16, p. 6756-6769 (Nov. 1
    1997).  See also erratum, ibid, vol. 109, no. 10, p. 4128 (Sep. 8
    1998).
 
