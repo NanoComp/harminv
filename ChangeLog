@@ -1,1 +1,126 @@
-Created automatically from CVS logs...
+2004-05-14  Steven G. Johnson  <stevenj@ab-initio>
+
+	* harminv.1: minor
+
+	* NEWS: news
+
+	* ChangeLog: created automatically by mkdist.sh
+
+	* check.h, harminv-int.h, harminv-main.c, harminv.c, harminv.h,
+	sines.c: copyright year update
+
+	* README: linking info
+
+	* harminv.1: document -s
+
+	* Makefile.am, blas_wrap.f, harminv-main.c, harminv.c, harminv.h:
+	added sorting, BLAS dot products & norms, ...
+
+	* sines.c: added -s
+
+	* README: blah
+
+	* README: more explanation of method
+
+	* harminv.c: added newer reference
+
+	* Makefile.am, README, autogen.sh, configure.ac, harminv.1,
+	harminv.c, harminv.pc.in, mkdist.sh: updated comments
+
+	* Makefile.am, configure.ac, copyright.h, harminv-int.h,
+	harminv-main.c, harminv.c, harminv.h, sines.c: separate library
+	and executable
+
+2004-03-13  Steven G. Johnson  <stevenj@ab-initio>
+
+	* configure.ac, harminv.c: minor fixes
+
+2002-11-04  Steven G. Johnson  <stevenj@ab-initio>
+
+	* COPYING, ChangeLog, Makefile.am, Makefile.in, NEWS, acx_blas.m4,
+	acx_lapack.m4, config.guess, config.sub, configure.ac,
+	configure.in, harminv-main.c, harminv.c, install-sh, sines.c:
+	automake-ized
+
+2002-03-28  Steven G. Johnson  <stevenj@ab-initio>
+
+	* sines.c: add noise option -N
+
+2002-03-18  Steven G. Johnson  <stevenj@ab-initio>
+
+	* harminv-main.c: bug fix in -f parsing
+
+2001-10-28  Steven G. Johnson  <stevenj@ab-initio>
+
+	* configure.in: slightly updated complex tests
+
+2000-06-06  Steven G. Johnson  <stevenj@ab-initio>
+
+	* sines.c: bug fix: default # timesteps should be NPERIODS
+	periods, not 1.
+
+	* README: added README
+
+2000-06-05  Steven G. Johnson  <stevenj@ab-initio>
+
+	* harminv.1: note that inputs are whitespace-separated
+
+	* harminv.1: many improvements
+
+	* configure.in: cray has CGEEV, not ZGEEV
+
+	* configure.in, harminv.c: more cray fixes (sigh)
+
+	* harminv.h, configure.in: Cray doesn't have carg
+
+	* sines.c: don't divide by zero, not all machines support 1/0 =
+	inf
+
+	* configure.in: check for I constant
+
+	* harminv.c: make F77_FUNC slightly more general
+
+	* harminv.c: whoops, ref was correct
+
+	* harminv.c: fixed reference
+
+	* harminv.c: disable LAPACK "optimal workspace" computation, as
+	LAPACK seems to be buggy sometimes.
+
+	* Makefile.in: 'make dist' needs to run autoheader.
+
+	* configure.in, harminv-main.c, harminv.c: cleaned up warnings
+
+	* sines.c: fixed compilation error under C
+
+2000-06-04  Steven G. Johnson  <stevenj@ab-initio>
+
+	* sines.c: explained meaning of Im[freq]
+
+	* Makefile.in, sines.c: added sines test program
+
+	* harminv.1: weakened description of error output.
+
+	* harminv-main.c: match column ordering in man page
+
+	* harminv.1, harminv-main.c: added man page
+
+	* configure.in, harminv-main.c, harminv.c, harminv.h, Makefile.in:
+	added C++ complex<double> support
+
+	* harminv-main.c: sign-related bugfixes
+
+	* harminv-main.c: bug fix
+
+	* harminv.h, COPYING, COPYRIGHT, check.h, copyright.h,
+	harminv-main.c, harminv.c: added copyright info
+
+	* configure.in, harminv-main.c, harminv.h, install-sh, Makefile,
+	Makefile.in, config.guess, config.sub: autoconfiscated
+
+	* Makefile, check.h, harminv-main.c, harminv.c, harminv.h: New
+	file.
+
+	* Makefile, check.h, harminv-main.c, harminv.c, harminv.h: created
+	repository
+
