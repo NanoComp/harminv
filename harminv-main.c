@@ -34,7 +34,7 @@
 /* eat whitespace, including #... comments, from the file.  Returns the
    number of newlines read (so that a line count can be maintained).  If
    echo_comments != 0, then echo #... comments to stdout.  Commas count
-   as whitespace, so that we can read commad-delimited text. */
+   as whitespace, so that we can read comma-delimited text. */
 static int eat_whitespace(FILE *f, int echo_comments)
 {
      int c, newlines = 0;
