@@ -56,7 +56,15 @@
    normal mode frequencies from a small number of residues or a
    short-time segment of a signal. I. Theory and application to a
    quantum-dynamics model," J. Chem. Phys., 102, no. 20, p. 8011-8022
-   (May 22 1995). */
+   (May 22 1995). 
+
+   A more recent reference is:
+
+   V. A. Mandelshtam, "On harmonic inversion of cross-correlation
+   functions by the filter diagonalization method," J. Theoretical and
+   Computational Chemistry 2 (4), 497-505 (2003).
+
+*/
 
 /**************************************************************************/
 
