@@ -146,6 +146,7 @@ static void usage(FILE *f)
 	     "    -t <dt> : specify sampling interval dt [default: 1]\n"
 	     "    -f <nf> : specify initial spectral density [default: %d]\n"
 	     "  -s <sort> : sort by <sort> = freq/err/decay/amp [default: freq]\n"
+	     "        -F : discard frequencies outside of specified range\n"
 	     "    -a <a> : discard amplitudes < max * <a> [default: %e]\n"
 	     "    -A <A> : discard amplitudes < <A> [default: %g]\n"
 	     "    -e <e> : discard relative errors > min * <e> [default: %e]\n"
@@ -195,6 +196,8 @@ static int compar(const void *a, const void *b)
 
 typedef struct {
      int verbose;
+     double fmin, fmax;
+     int only_f_inrange;
      double err_thresh, rel_err_thresh, amp_thresh, rel_amp_thresh, Q_thresh;
      double min_err, max_amp;
      int num_ok;
@@ -203,7 +206,7 @@ typedef struct {
 static int mode_ok(harminv_data d, int k, void *ok_d_)
 {
      mode_ok_data *ok_d = (mode_ok_data *) ok_d_;
-     double errk, ampk;
+     double errk, ampk, f;
      int ok;
 
      if (k == -1) { /* initialize */
@@ -236,10 +239,12 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 	  return 0;
      }
 
+     f = harminv_get_freq(d, k);
      errk = harminv_get_freq_error(d, k);
      ampk = cabs(harminv_get_amplitude(d, k));
 
-     ok = (errk <= ok_d->err_thresh
+     ok = ((!ok_d->only_f_inrange || (f >= ok_d->fmin && f <= ok_d->fmax))
+	   && errk <= ok_d->err_thresh
 	   && errk <= ok_d->min_err * ok_d->rel_err_thresh
 	   && ampk >= ok_d->amp_thresh
 	   && ampk >= ok_d->rel_amp_thresh * ok_d->max_amp
@@ -267,13 +272,14 @@ int main(int argc, char **argv)
      int iarg;
      cmplx *data;
 
+     ok_d.only_f_inrange = 0;
      ok_d.err_thresh = ERR_THRESH;
      ok_d.rel_err_thresh = REL_ERR_THRESH;
      ok_d.amp_thresh = AMP_THRESH;
      ok_d.rel_amp_thresh = REL_AMP_THRESH;
      ok_d.Q_thresh = Q_THRESH;
 
-     while ((c = getopt(argc, argv, "hvVTwt:f:s:e:E:a:A:Q:")) != -1)
+     while ((c = getopt(argc, argv, "hvVTFwt:f:s:e:E:a:A:Q:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -290,6 +296,9 @@ int main(int argc, char **argv)
 		   break;
 	      case 'w':
 		   specify_omega = 1;
+		   break;
+	      case 'F':
+		   ok_d.only_f_inrange = 1;
 		   break;
 	      case 'a':
 		   ok_d.rel_amp_thresh = atof(optarg);
@@ -394,6 +403,9 @@ int main(int argc, char **argv)
 	  }
 	  if (verbose)
 	       printf("# searching frequency range %g - %g\n", fmin, fmax);
+
+	  ok_d.fmin = fmin*dt;
+	  ok_d.fmax = fmax*dt;
 
 	  hd = harminv_data_create(n, data, fmin*dt, fmax*dt, nf);
 	  
