@@ -20,11 +20,6 @@ if test "$GCC" = "yes"; then
 	CFLAGS="$CFLAGS -Wall -W -Wbad-function-cast -Wcast-qual -Wpointer-arith -Wcast-align -pedantic"
 fi
 
-HARMINV_CC="$CC"
-HARMINV_CFLAGS="$CFLAGS"
-AC_SUBST(HARMINV_CC)
-AC_SUBST(HARMINV_CFLAGS)
-
 ###########################################################################
 
 AC_ARG_WITH(cxx, [  --with-cxx=<dir>        force use of C++ and complex<double>], with_cxx=$withval, with_cxx=no)
@@ -32,6 +27,7 @@ AC_ARG_WITH(cxx, [  --with-cxx=<dir>        force use of C++ and complex<double>
 if test "x$with_cxx" = "xno"; then
 
 have_c_complex=yes
+AC_CHECK_HEADERS(complex.h)
 AC_CACHE_CHECK([for C complex keyword], acx_cv_c_complex,
  [acx_cv_c_complex=unsupported
   for acx_kw in complex _Complex __complex__; do
@@ -47,40 +43,41 @@ else
    if test "$acx_cv_c_complex" != "complex"; then
      AC_DEFINE_UNQUOTED(complex, $acx_cv_c_complex, [Define to equivalent of C99 complex keyword.  Do not define if complex is supported directly.])
    fi
-fi
 
-AC_CACHE_CHECK([for C complex I constant], acx_cv_c_complex_I,
- [acx_cv_c_complex_I=unsupported
- for acx_kw in I "(1.0i)"; do
-   AC_TRY_COMPILE([#include <complex.h>],
-                  [float $acx_cv_c_complex foo = $acx_kw;],
-                  [acx_cv_c_complex_I=$acx_kw; break])
- done
-])
+  AC_CACHE_CHECK([for C complex I constant], acx_cv_c_complex_I,
+   [acx_cv_c_complex_I=unsupported
+   for acx_kw in I "(1.0i)"; do
+     AC_TRY_COMPILE([#include <complex.h>],
+                    [float $acx_cv_c_complex foo = $acx_kw;],
+                    [acx_cv_c_complex_I=$acx_kw; break])
+   done
+  ])
 
-if test "$acx_cv_c_complex_I" = "unsupported"; then
-   AC_MSG_ERROR([C doesn't support complex numbers.])
-   have_c_complex=no
-else
-   if test "$acx_cv_c_complex_I" != "I"; then
-     AC_DEFINE_UNQUOTED(I, $acx_cv_c_complex_I, [Define to equivalent of C99 complex I constant.  Do not define if I is supported directly.])
-   fi
-fi
+  if test "$acx_cv_c_complex_I" = "unsupported"; then
+     AC_MSG_ERROR([C doesn't support complex numbers.])
+     have_c_complex=no
+  else
+     if test "$acx_cv_c_complex_I" != "I"; then
+       AC_DEFINE_UNQUOTED(I, $acx_cv_c_complex_I, [Define to equivalent of C99 complex I constant.  Do not define if I is supported directly.])
+     fi
+  fi
 
-AC_CACHE_CHECK([for CX_LIMITED_RANGE_ON macro], acx_cv_c_cx_limited_range_on,
- [acx_cv_c_cx_limited_range_on=no
-  AC_TRY_COMPILE([#include <complex.h>],
-                 [CX_LIMITED_RANGE_ON;], [acx_cv_c_cx_limited_range_on=yes])])
-if test "$acx_cv_c_cx_limited_range_on" = "no"; then
-   AC_DEFINE(CX_LIMITED_RANGE_ON, 0, [Define to no-op if C99 macro is not available.])
-fi
+  AC_CACHE_CHECK([for CX_LIMITED_RANGE_ON macro], acx_cv_c_cx_limited_range_on,
+   [acx_cv_c_cx_limited_range_on=no
+    AC_TRY_COMPILE([#include <complex.h>],
+                   [CX_LIMITED_RANGE_ON;], [acx_cv_c_cx_limited_range_on=yes])])
+  if test "$acx_cv_c_cx_limited_range_on" = "no"; then
+     AC_DEFINE(CX_LIMITED_RANGE_ON, 0, [Define to no-op if C99 macro is not available.])
+  fi
+
+fi # C has complex keyword
 
 fi # $with_cxx = no
 
 if test "$with_cxx" = "yes" -o "$have_c_complex" = "no"; then
 	AC_PROG_CXX
-	HARMINV_CC="$CXX"
-	HARMINV_CFLAGS="$CXXFLAGS"
+	CC="$CXX"
+	CFLAGS="$CXXFLAGS"
 fi
 
 if test "$have_c_complex" = "yes"; then
