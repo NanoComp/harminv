@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Harminv
+Description: harmonic inversion of time series by filter diagonalization
+Version: @VERSION@
+Libs: -L${libdir} -lharminv @LIBS@
+Cflags: -I${includedir}

@@ -1,5 +1,6 @@
 			       harminv:
 		  Harmonic Inversion of Time Signals
+		 by the Filter Diagonalizatino Method
 
 	       Steven G. Johnson <stevenj@alum.mit.edu>
 		Massachusetts Institute of Technology
@@ -9,24 +10,95 @@
 Introduction:
 =============
 
-harminv is a free program to solve the problem of "harmonic
-inversion."  Given a discrete, finite-length signal that consists of a
-sum of finitely-many sinusoids (possibly exponentially decaying), it
-determines the frequencies, decay constants, amplitudes, and phases of
-those sinusoids.
+harminv is a free program (and accompanying library) to solve the
+problem of "harmonic inversion."  Given a discrete, finite-length
+signal that consists of a sum of finitely-many sinusoids (possibly
+exponentially decaying), it determines the frequencies, decay
+constants, amplitudes, and phases of those sinusoids.
 
 It can, in principle, provide much better accuracy than
 straightforward FFT based methods, essentially because it assumes a
 specific form for the signal.  (Fourier transforms, in contrast,
-attempt to represent *any* data as a sum of sinusoidal component.)
+attempt to represent *any* data as a sum of sinusoidal components.)
 
 This kind of spectral analysis has wide applications in many areas of
-physics and engineering, and other fields.  For example, it could be
-used to extract the vibrational or "eigen" modes of a system from its
-response to some stimulus, and also their rates of decay in
-dissipative systems.
+physics and engineering, as well as other fields.  For example, it
+could be used to extract the vibrational or "eigen" modes of a system
+from its response to some stimulus, and also their rates of decay in
+dissipative systems.  This has been applied to analyze, e.g., NMR
+experimental data and numerical simulations of quantum mechanics.
 
-------------------------------------------------------------------------------
+We use a low-storage "filter diagonalization method" (FDM) for
+finding the sinusoids near a given frequency interval, described in:
+
+   V. A. Mandelshtam and H. S. Taylor, "Harmonic inversion of time
+   signals," J. Chem. Phys., vol. 107, no. 17, p. 6756-6769 (Nov. 1
+   1997).  See also erratum, ibid, vol. 109, no. 10, p. 4128 (Sep. 8
+   1998).
+
+(See also comments in harminv.c.)
+
+Program Usage:
+==============
+
+The usage of the harminv program is described by its man page ('man
+harminv'), included in the installation below.  To briefly summarize,
+it takes a sequence of numbers (real or complex) from standard input
+and a range of frequencies to search and outputs the frequencies it
+finds.
+
+Library Usage:
+==============
+
+The usage of the library -lharminv is analogous to the program.  In C
+or C++, you first #include <harminv.h>, then specify the data and the
+frequency range by calling harminv_data_create, returning a
+harminv_data data structure:
+
+harminv_data harminv_data_create(int n, const harminv_complex *signal,
+                                 double fmin, double fmax, int nf);
+
+signal is a pointer to an array of n complex numbers.  In C++,
+harminv_complex is std::complex<double>.  In C, harminv_complex is a
+double[2] with the real parts in signal[i][0] and the imaginary parts
+in signal[i][1].  fmin and fmax are the frequency range to search, and
+nf is an upper bound on the number of frequencies in that range (100
+is typically a safe value).  Frequencies are in units corresponding to
+a sampling interval of 1 time unit--if your actual sampling interval
+is dt, then you should rescale your frequencies by multiplying them by
+dt.
+
+Then, you solve for the frequencies by calling:
+
+void harminv_solve(harminv_data d);
+
+Then, the frequencies and other data can be extracted from d by the
+following routines.  The number N of frequencies found is returned by:
+
+int harminv_get_num_freqs(harminv_data d);
+
+Then, for each index 0 <= k < N, the corresponding frequency and decay
+constant (as defined in 'man harminv') are returned by:
+
+double harminv_get_freq(harminv_data d, int k);
+double harminv_get_decay(harminv_data d, int k);
+
+An array of the N corresponding complex amplitudes is allocated and
+returned by:
+
+harminv_complex *harminv_compute_amplitudes(harminv_data d);
+
+When you are done with this array, you should deallocate it by calling
+free().  Similarly, an array of N "error" figures of merit is returned
+by:
+
+double *harminv_compute_frequency_errors(harminv_data d);
+
+As described in 'man harminv', this figure of merit is not simply an
+error bar, and its quantitative interpretation seems difficult.  (See
+harminv.c for a reference to the method used to compute this figure of
+merit.)  However, solutions with a much larger error figure of merit
+compared to other solutions are likely to be spurious.
 
 Installation:
 =============

@@ -28,6 +28,9 @@ if test "$GCC" = "yes" && test "$USE_MAINTAINER_MODE" = yes; then
 	CFLAGS="$CFLAGS -Wall -W -Wbad-function-cast -Wcast-qual -Wpointer-arith -Wcast-align -pedantic"
 fi
 
+# Checks for header files.
+AC_CHECK_HEADERS(unistd.h getopt.h)
+
 ###########################################################################
 
 AC_ARG_WITH(cxx, [  --with-cxx=<dir>        force use of C++ and complex<double>], with_cxx=$withval, with_cxx=no)
@@ -99,9 +102,6 @@ fi
 AC_PROG_LIBTOOL                                                                                
 ###########################################################################
 
-# Checks for header files.
-AC_CHECK_HEADERS(unistd.h getopt.h)
-
 AC_CHECK_LIB(m, sqrt)
 
 ###########################################################################
@@ -117,5 +117,5 @@ LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
 
 ###########################################################################
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile harminv.pc])
 AC_OUTPUT

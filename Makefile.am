@@ -4,7 +4,10 @@ include_HEADERS = harminv.h
 dist_man_MANS = harminv.1
 noinst_PROGRAMS = sines
 
-EXTRA_DIST = COPYRIGHT
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = harminv.pc
+
+EXTRA_DIST = COPYRIGHT harminv.pc.in
 
 libharminv_la_SOURCES = harminv.c harminv.h harminv-int.h check.h
 libharminv_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@

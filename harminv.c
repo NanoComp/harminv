@@ -34,7 +34,7 @@
    the sinusoids much more accurately than we could via taking the FFT
    and looking at the peaks, for the same number of samples.
 
-   We use an "low-storage filter diagonalization" algorithm for finding
+   We use a low-storage "filter diagonalization method" (FDM) for finding
    the sinusoids near a given frequency interval, described in:
 
    V. A. Mandelshtam and H. S. Taylor, "Harmonic inversion of time
@@ -555,7 +555,7 @@ void harminv_solve(harminv_data d)
 
 /* Returns an array (of size harminv_get_num_freqs(d)) of estimates
    for the |error| in the solution frequencies.  Solutions with
-   errors not << 1 are likely to be spurious. */
+   errors much larger than the smallest error are likely to be spurious. */
 double *harminv_compute_frequency_errors(harminv_data d)
 {
      int i, J2, one = 1;
