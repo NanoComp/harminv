@@ -172,6 +172,12 @@ static cmplx cpow_i(cmplx c, int n)
      }
 }
 
+/* Computing powers by cumulative multiplication, below, is faster
+   than calling cpow_i repeatedly, but accumulates O(n) floating-point
+   error.  As a compromise, we call cpow_i every NPOW iterations, which
+   accumulates only O(NPOW) error. */
+#define NPOW 8
+
 /* FIXME: instead of this, we should really do the first-order expansion
    of the U matrix in |z - z2|, below. */
 #define SMALL (1e-12)
@@ -270,16 +276,20 @@ static void generate_U(cmplx *U, cmplx *U1,
 		    G[i] += x1;
 		    G_M[i] += x2;
 		    D[i] += x1 * d + x2 * d2 * z_M[i] * z_inv[i];
-		    /* z_m[i] = cpow_i(z_inv[i], m + 1); */
-		    z_m[i] *= z_inv[i];
+		    if (m % NPOW == NPOW - 1)
+			 z_m[i] = cpow_i(z_inv[i], m + 1);
+		    else
+			 z_m[i] *= z_inv[i];
 	       }
 	  }
 	  if (z2 != z)
 	       for (i = 0; i < J2; ++i) {
 		    G2[i] += z2_m[i] * c1;
 		    G2_M[i] += z2_m[i] * c2;
-		    /* z2_m[i] = cpow_i(z2_inv[i], m + 1); */
-		    z2_m[i] *= z2_inv[i];
+		    if (m % NPOW == NPOW - 1)
+			 z2_m[i] = cpow_i(z2_inv[i], m + 1);
+		    else
+			 z2_m[i] *= z2_inv[i];
 	       }
      }
 
