@@ -158,10 +158,10 @@ written in C, in order to link the C++ libraries.
 Installation:
 =============
 
-harminv is a command-line utility designed to run on any Unix-like
-system (Linux is fine).  (It may also be possible to compile it on
-other systems, as it is mainly ANSI C with the exception of one or two
-POSIX functions like getopt.)
+Harminv is designed to run on any Unix-like system (GNU/Linux is
+fine).  (It may also be possible to compile it on other systems, as it
+is mainly ANSI C with the exception of one or two POSIX functions like
+getopt.)
 
 However, you do need a couple of prerequisites:
 

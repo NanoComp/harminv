@@ -87,7 +87,6 @@
 #define ZGEMV BLAS_FUNC(gemv,GEMV)
 #define ZSCAL BLAS_FUNC(scal,SCAL)
 
-#define HARMINV_DNRM2 F77_FUNC_(harminv_dnrm2, HARMINV_DNRM2)
 #define HARMINV_ZDOTU F77_FUNC_(harminv_zdotu, HARMINV_ZDOTU)
 
 #ifdef __cplusplus
@@ -114,7 +113,6 @@ extern void ZAXPY(int*, cmplx*, cmplx*,int*, cmplx*,int*);
 extern void ZGEMV(FCHARP, int*,int*, cmplx*, cmplx*,int*, cmplx*,int*,
 		  cmplx*, cmplx*,int*);
 extern void ZSCAL(int*, cmplx*, cmplx*,int*);
-extern void HARMINV_DNRM2(double *, int *, double *, int *);
 extern void HARMINV_ZDOTU(cmplx *, int *, cmplx *, int *, cmplx *, int *);
 
 #ifdef __cplusplus
@@ -378,20 +376,11 @@ void harminv_data_destroy(harminv_data d)
    length n.  If they are column-vectors, this is: transpose(x) * y. */
 static cmplx symmetric_dot(int n, cmplx *x, cmplx *y)
 {
-     cmplx dot;
-     int stride = 1;
-     HARMINV_ZDOTU(&dot, &n, x, &stride, y, &stride);
+     cmplx dot = 0;
+     int i;
+     for (i = 0; i < n; ++i)
+	  dot += x[i] * y[i];
      return dot;
-}
-
-/* Complex norm: sqrt(x' * x) */
-static double norm(int n, cmplx *x)
-{
-     double nrm;
-     int stride = 2;
-     n *= 2;
-     HARMINV_DNRM2(&nrm, &n, (double *) x, &stride);
-     return nrm;
 }
 
 /**************************************************************************/
