@@ -386,7 +386,9 @@ void harminv_data_destroy(harminv_data d)
 /**************************************************************************/
 
 /* Compute the symmetric dot product of x and y, both vectors of
-   length n.  If they are column-vectors, this is: transpose(x) * y. */
+   length n.  If they are column-vectors, this is: transpose(x) * y. 
+   (We could use the BLAS ZDOTU function for this, but calling Fortran
+    functions, as opposed to subroutines, from C is problematic.) */
 static cmplx symmetric_dot(int n, cmplx *x, cmplx *y)
 {
      cmplx dot = 0;
