@@ -46,6 +46,7 @@ void usage(FILE *f)
              "         -V : print version number and copyright\n"
              "         -v : verbose output\n"
 	     "         -T : specify periods instead of frequencies\n"
+	     "         -R : real output\n"
 	     "         -r : random amplitudes\n"
 	     "     -N <a> : add white noise with amplitude <a>\n"
 	     "     -s <s> : use seed <s> for random #s (default <s>=time)\n"
@@ -68,6 +69,7 @@ int main(int argc, char **argv)
      int iarg;
      int specify_periods = 0;
      int random_amplitudes = 0;
+     int real_output = 0;
      sinusoid *sines = NULL;
      int nsines = 0, nalloc = 0, n = 0;
      double max_period = 0;
@@ -77,7 +79,7 @@ int main(int argc, char **argv)
 
      srand(time(NULL));
 
-     while ((c = getopt(argc, argv, "hVvTrn:t:N:s:")) != -1)
+     while ((c = getopt(argc, argv, "hVvTRrn:t:N:s:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -92,6 +94,9 @@ int main(int argc, char **argv)
 		   break;
 	      case 'T':
 		   specify_periods = 1;
+		   break;
+	      case 'R':
+		   real_output = 1;
 		   break;
 	      case 'r':
 		   random_amplitudes = 1;
@@ -185,7 +190,10 @@ int main(int argc, char **argv)
 		    cexp(I * (sines[is].phase - TWOPI*sines[is].freq * i*dt)
 			 - sines[is].decay * i*dt);
 	  output += noise * (rand() * 2.0/RAND_MAX - 1);
-	  printf("%0.17e%+0.17ei\n", creal(output), cimag(output));
+	  if (real_output)
+	       printf("%0.17e\n", creal(output));
+	  else
+	       printf("%0.17e%+0.17ei\n", creal(output), cimag(output));
      }
 
      free(sines);
