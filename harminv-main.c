@@ -152,6 +152,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "harminv: -f argument must be > 1\n");
 			return EXIT_FAILURE;
 		   }
+		   break;
 	      default:
 		   fprintf(stderr, "harminv: invalid argument -%c\n", c);
 		   usage(stderr);
