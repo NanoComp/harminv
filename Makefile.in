@@ -17,10 +17,11 @@ distdir = $(package)-$(VERSION)
 ###########################################################################
 
 OBJ_harminv = harminv-main.o harminv.o
+OBJ_sines = sines.o harminv.o
 
 ###########################################################################
 
-all: harminv
+all: harminv sines
 install: harminv-install
 uninstall: harminv-uninstall
 
@@ -28,6 +29,9 @@ uninstall: harminv-uninstall
 
 harminv: $(OBJ_harminv)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ_harminv) $(LIBS) -o $@
+
+sines: $(OBJ_sines)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ_sines) $(LIBS) -o $@
 
 .c.o:
 	$(CC) -c $(DEFS) $(CPPFLAGS) $(CFLAGS) $< -o $@
@@ -56,7 +60,7 @@ dist:
 	rm -rf $(distdir)
 
 clean:
-	rm -f $(OBJ_harminv) core
+	rm -f $(OBJ_harminv) $(OBJ_sines) core
 
 distclean: clean
 	rm -f config.cache Makefile config.log config.status config.h harminv
