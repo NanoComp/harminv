@@ -172,7 +172,7 @@ int main(int argc, char **argv)
      if (verbose)
 	  printf("# harminv: %d inputs, dt = %g, nf = %d\n", n, dt, nf);
 
-     printf("frequency, decay constant, Q, error, amplitude, phase\n");
+     printf("frequency, decay constant, Q, amplitude, phase, error\n");
 
      for (iarg = optind; iarg < argc; ++iarg) {
 	  double fmin, fmax;
@@ -237,7 +237,7 @@ int main(int argc, char **argv)
 	       decay = harminv_get_decay(hd, i) / fabs(dt);
 	       printf("%g, %g, %g, %g, %g, %g\n",
 		      freq, decay, TWOPI * fabs(freq) / (2 * decay),
-		      errs[i] / fabs(dt), cabs(amps[i]), carg(amps[i]));
+		      cabs(amps[i]), carg(amps[i]), errs[i] / fabs(dt));
 	  }
 
 	  free(amps);
