@@ -762,12 +762,14 @@ double harminv_get_decay(harminv_data d, int k)
 {
      CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
-	   "argument out of range in harminv_get_freq");
+	   "argument out of range in harminv_get_decay");
      return(-log(cabs(d->u[k])));
 }
 
 double harminv_get_Q(harminv_data d, int k)
 {
+     CHECK(k >= 0 && k < d->nfreqs,
+	   "argument out of range in harminv_get_Q");
      return(TWOPI * fabs(harminv_get_freq(d, k))
 	    / (2 * harminv_get_decay(d, k)));
 }
@@ -776,14 +778,14 @@ cmplx harminv_get_omega(harminv_data d, int k)
 {
      CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
-	   "argument out of range in harminv_get_freq");
+	   "argument out of range in harminv_get_omega");
      return(I * clog(d->u[k]));
 }
 
 cmplx harminv_get_amplitude(harminv_data d, int k)
 {
      CHECK(k >= 0 && k < d->nfreqs,
-	   "argument out of range in harminv_get_freq");
+	   "argument out of range in harminv_get_amplitude");
      if (!d->amps)
 	  d->amps = harminv_compute_amplitudes(d);
      return d->amps[k];
@@ -792,7 +794,7 @@ cmplx harminv_get_amplitude(harminv_data d, int k)
 double harminv_get_freq_error(harminv_data d, int k)
 {
      CHECK(k >= 0 && k < d->nfreqs,
-	   "argument out of range in harminv_get_freq");
+	   "argument out of range in harminv_get_freq_error");
      if (!d->errs)
 	  d->errs = harminv_compute_frequency_errors(d);
      return d->errs[k];
