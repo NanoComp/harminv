@@ -1,0 +1,96 @@
+			       harminv:
+		  Harmonic Inversion of Time Signals
+
+	       Steven G. Johnson <stevenj@alum.mit.edu>
+		Massachusetts Institute of Technology
+
+------------------------------------------------------------------------------
+
+Introduction:
+=============
+
+harminv is a free program to solve the problem of "harmonic
+inversion."  Given a discrete, finite-length signal that consists of a
+sum of finitely-many sinusoids (possibly exponentially decaying), it
+determines the frequencies, decay constants, amplitudes, and phases of
+those sinusoids.
+
+It can, in principle, provide much better accuracy than
+straightforward FFT based methods, essentially because it assumes a
+specific form for the signal.  (Fourier transforms, in contrast,
+attempt to represent *any* data as a sum of sinusoidal component.)
+
+This kind of spectral analysis has wide applications in many areas of
+physics and engineering, and other fields.  For example, it could be
+used to extract the vibrational or "eigen" modes of a system from its
+response to some stimulus, and also their rates of decay in
+dissipative systems.
+
+------------------------------------------------------------------------------
+
+Installation:
+=============
+
+harminv is a command-line utility designed to run on any Unix-like
+system (Linux is fine).  (It may also be possible to compile it on
+other systems, as it is mainly ANSI C with the exception of one or two
+POSIX functions like getopt.)
+
+However, you do need a couple of prerequisites:
+
+* BLAS (http://www.netlib.org/blas/)
+
+Basic Linear Algebra Subroutines (matrix-multiplications, etcetera),
+following a standard interface, for use by LAPACK (see below).  There
+are many optimized versions of BLAS available, e.g. a free library
+called ATLAS (http://www.netlib.org/atlas/).
+
+* LAPACK (http://www.netlib.org/lapack/)
+
+A standard, free, linear-algebra package.  Note that the default
+configuration script looks for LAPACK by linking with -llapack.  This
+means that the library must be called liblapack.a and be installed in
+a standard directory like /usr/local/lib (alternatively, you can
+specify another directory via the LDFLAGS environment variable; see
+below).
+
+See also http://ab-initio.mit.edu/mpb/doc/installation.html#blas for
+links to other information on installing BLAS and LAPACK.
+
+Once you have those installed, you can compile and install harminv.
+harminv comes with a GNU-style configure script, so on Unix systems
+compilation is ideally just a matter of:
+
+	./configure && make
+
+and then switching to root and running:
+
+	make install
+
+In order to compile, harminv requires either:
+
+* An ANSI C compiler supporting complex numbers, as defined in
+  the ANSI C99 standard (or a reasonable approximation thereof).
+  For example, gcc-2.95 is fine.
+
+* A C++ compiler supporting the complex<double> standard template class.
+
+The configure script looks for a C compiler with complex numbers first,
+and then for a C++ compiler.  You can force it to use C++ by passing
+--with-cxx to configure.
+
+If you need to, you can have further control over the configure
+script's behavior by setting enviroment variables.  This can be useful
+especially if you have libraries installed in nonstandard locations
+(e.g. in your home directory, if you are not root), to tell the
+compiler where to look.  The most common variables to set are:
+
+CC: the name of the C compiler
+CPPFLAGS: -I<dir> flags to tell the C compiler where to look for header files
+CFLAGS: C compiler flags
+F77: the name of the Fortran compiler
+FFLAGS: Fortran compiler flags
+LDFLAGS: linker flags (e.g. -L<dir> to look for libraries in <dir>)
+
+------------------------------------------------------------------------------
+
