@@ -169,7 +169,8 @@ static void generate_U(cmplx *U, cmplx *U1,
 		       int p, 
 		       const cmplx *c, int n,
 		       int K,
-		       int J, int J2, const cmplx *z, const cmplx *z2)
+		       int J, int J2, const cmplx *z, const cmplx *z2,
+		       cmplx **G0, cmplx **G0_M, cmplx **D0)
 {
      int M = K - 1;
      int i, j, m;
@@ -181,6 +182,10 @@ static void generate_U(cmplx *U, cmplx *U1,
      CHECK(U && c && z && z2, "invalid arguments to generate_U");
      CHECK(n >= 2*K + p, "too few coefficients in generate_U");
      CHECK(z != z2 || J == J2, "invalid sizes passed to generate_U");
+     CHECK((!G0 && !G0_M && !D0) || (G0 && G0_M && D0),
+	   "G0/G0_M/D0 must be all-non-NULL/all-NULL");
+     CHECK(!G0 || (!*G0 && !*G0_M && !*D0) || (*G0 && *G0_M && *D0),
+	   "*G0/*G0_M/*D0 must be all-non-NULL/all-NULL");
      
      /* Now, compute U according to eqs. 25-27 of Chen & Guo, but
         using the notation of eq. 25 of M&T.  This operation has
@@ -193,14 +198,23 @@ static void generate_U(cmplx *U, cmplx *U1,
      CHK_MALLOC(z_inv, cmplx, J);
      CHK_MALLOC(z_m, cmplx, J);
      CHK_MALLOC(z_M, cmplx, J);
-     CHK_MALLOC(G, cmplx, J);
-     CHK_MALLOC(G_M, cmplx, J);
-     CHK_MALLOC(D, cmplx, J);
+     if (G0 && *G0) {
+	  G = *G0;
+	  G_M = *G0_M;
+	  D = *D0;
+     }
+     else {
+	  CHK_MALLOC(G, cmplx, J);
+	  CHK_MALLOC(G_M, cmplx, J);
+	  CHK_MALLOC(D, cmplx, J);
+	  for (i = 0; i < J; ++i) {
+	       D[i] = G[i] = G_M[i] = 0;
+	  }
+     }
      for (i = 0; i < J; ++i) {
 	  z_inv[i] = 1.0 / z[i];
 	  z_m[i] = 1;
-	  z_M[i] = 1.0 / cpow_i(z[i], M);
-	  D[i] = G[i] = G_M[i] = 0;
+	  z_M[i] = cpow_i(z[i], -M);
      }
      if (z2 != z) {
 	  CHK_MALLOC(z2_inv, cmplx, J2);
@@ -211,7 +225,7 @@ static void generate_U(cmplx *U, cmplx *U1,
 	  for (i = 0; i < J2; ++i) {
 	       z2_inv[i] = 1.0 / z2[i];
 	       z2_m[i] = 1;
-	       z2_M[i] = 1.0 / cpow_i(z2[i], M);
+	       z2_M[i] = cpow_i(z2[i], -M);
 	       G2[i] = G2_M[i] = 0;
 	  }
      }
@@ -227,13 +241,15 @@ static void generate_U(cmplx *U, cmplx *U1,
 	  double d = m + 1; /* M - fabs(M - m) + 1 */
 	  double d2 = M - m; /* M - fabs(M - (m + M + 1)) + 1 */
 
-	  for (i = 0; i < J; ++i) {
-	       cmplx x1 = z_m[i] * c1;
-	       cmplx x2 = z_m[i] * c2;
-	       G[i] += x1;
-	       G_M[i] += x2;
-	       D[i] += x1 * d + x2 * d2 * z_M[i] * z_inv[i];
-	       z_m[i] *= z_inv[i];
+	  if (!G0 || !*G0) {
+	       for (i = 0; i < J; ++i) {
+		    cmplx x1 = z_m[i] * c1;
+		    cmplx x2 = z_m[i] * c2;
+		    G[i] += x1;
+		    G_M[i] += x2;
+		    D[i] += x1 * d + x2 * d2 * z_M[i] * z_inv[i];
+		    z_m[i] *= z_inv[i];
+	       }
 	  }
 	  if (z2 != z)
 	       for (i = 0; i < J2; ++i) {
@@ -309,9 +325,16 @@ static void generate_U(cmplx *U, cmplx *U1,
      free(z2_m);
      free(z2_inv);
 
-     free(D);
-     free(G_M);
-     free(G);
+     if (G0 && !*G0) {
+	  *G0 = G;
+	  *G0_M = G_M;
+	  *D0 = D;
+     }
+     else if (!G0) {
+	  free(D);
+	  free(G_M);
+	  free(G);
+     }
      free(z_M);
      free(z_m);
      free(z_inv);
@@ -325,7 +348,8 @@ static void init_z(harminv_data d, int J, cmplx *z)
      d->z = z;
      CHK_MALLOC(d->U0, cmplx, J*J);
      CHK_MALLOC(d->U1, cmplx, J*J);
-     generate_U(d->U0, d->U1, 0, d->c, d->n, d->K, d->J, d->J, d->z, d->z);
+     generate_U(d->U0, d->U1, 0, d->c, d->n, d->K, d->J, d->J, d->z, d->z,
+		&d->G0, &d->G0_M, &d->D0);
 }
 
 /**************************************************************************/
@@ -355,6 +379,10 @@ harminv_data harminv_data_create(int n,
      d->K = n/2 - 1;
      d->fmin = fmin;
      d->fmax = fmax;
+     d->nfreqs = -1;  /* we haven't computed eigen-solutions yet */
+     d->B = d->u = d->amps = d->U0 = d->U1 = d->G0 = d->G0_M = d->D0
+	  = (cmplx *) NULL;
+     d->errs = (double *) NULL;
      
      CHK_MALLOC(d->z, cmplx, nf);
      for (i = 0; i < nf; ++i)
@@ -362,10 +390,6 @@ harminv_data harminv_data_create(int n,
 
      init_z(d, nf, d->z);
 
-     d->nfreqs = -1;  /* we haven't computed eigen-solutions yet */
-     d->B = d->u = d->amps = (cmplx *) NULL;
-     d->errs = (double *) NULL;
-     
      return d;
 }
 
@@ -376,6 +400,7 @@ void harminv_data_destroy(harminv_data d)
      if (d) {
 	  free(d->u); free(d->B);
 	  free(d->U1); free(d->U0);
+	  free(d->G0); free(d->G0_M); free(d->D0);
 	  free(d->z);
 	  free(d->amps);
 	  free(d->errs);
@@ -517,11 +542,12 @@ void harminv_solve_again(harminv_data d, harminv_mode_ok_func ok, void *ok_d)
      }
 
      free(d->B);
-     free(d->U1); free(d->U0);
+     free(d->U1); free(d->U0); free(d->G0); free(d->G0_M); free(d->D0);
      free(d->z);
      free(d->amps);
      free(d->errs);
-     d->B = d->U1 = d->U0 = d->z = d->amps = (cmplx *) NULL;
+     d->B = d->U1 = d->U0 = d->G0 = d->G0_M = d->D0
+	  = d->z = d->amps = (cmplx *) NULL;
      d->errs = (double *) NULL;
 
      /* Spectral grid needs to be on the unit circle or system is unstable: */
@@ -610,7 +636,8 @@ double *harminv_compute_frequency_errors(harminv_data d)
      
      J2 = d->J*d->J;
      CHK_MALLOC(U2, cmplx, J2);
-     generate_U(U2, NULL, 2, d->c, d->n, d->K, d->J, d->J, d->z, d->z);
+     generate_U(U2, NULL, 2, d->c, d->n, d->K, d->J, d->J, d->z, d->z,
+		NULL, NULL, NULL);
      CHK_MALLOC(U2b, cmplx, d->J);
 
      /* For each eigenstate, compute an estimate of the error, roughly
@@ -641,32 +668,61 @@ double *harminv_compute_frequency_errors(harminv_data d)
 
 /**************************************************************************/
 
+#define UNITY_THRESH 1e-4 /* FIXME? */
+
+/* true if UNITY_THRESH < |u|^n < 1/UNITY_THRESH. */
+static int u_near_unity(cmplx u, int n)
+{
+     double nlgabsu = n * log(cabs(u));
+     return (log(UNITY_THRESH) < nlgabsu && nlgabsu < -log(UNITY_THRESH));
+}
+
 /* Return an array (of size harminv_get_num_freqs(d)) of complex
    amplitudes of each sinusoid in the solution. */
 cmplx *harminv_compute_amplitudes(harminv_data d)
 {
      int k, j;
+     cmplx *u;
      cmplx *Uu;
      cmplx *a; /* the amplitudes of the eigenfrequencies */
+     int ku, nu;
 
      CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      if (!d->nfreqs) return NULL;
 
      CHK_MALLOC(a, cmplx, d->nfreqs);
+     CHK_MALLOC(u, cmplx, d->nfreqs);
 
-     CHK_MALLOC(Uu, cmplx, d->J * d->nfreqs);
-     generate_U(Uu, NULL, 0, d->c, d->n, d->K, d->J, d->nfreqs, d->z, d->u);
+     for (k = ku = 0; k < d->nfreqs; ++k)
+	  if (u_near_unity(d->u[k], d->n))
+	       u[ku++] = d->u[k];
+     nu = ku;
 
-     /* compute the amplitudes via eq. 27 of M&T: */
-     for (k = 0; k < d->nfreqs; ++k) {
+     CHK_MALLOC(Uu, cmplx, d->J * nu);
+     generate_U(Uu, NULL, 0, d->c, d->n, d->K, d->J, nu, d->z, u,
+		&d->G0, &d->G0_M, &d->D0);
+
+     /* compute the amplitudes via eq. 27 of M&T, except when |u| is
+	too small..in that case, the computation of Uu is unstable,
+	and we use eq. 26 instead (which doesn't use half of the data,
+	but doesn't blow up either): */
+     for (k = ku = 0; k < d->nfreqs; ++k) {
 	  a[k] = 0;
-	  for (j = 0; j < d->J; ++j)
-	       a[k] += d->B[k * d->J + j] * Uu[j * d->nfreqs + k];
-	  a[k] /= d->K;
+	  if (u_near_unity(d->u[k], d->n)) { /* eq. 27 */
+	       for (j = 0; j < d->J; ++j)
+		    a[k] += d->B[k * d->J + j] * Uu[j * nu + ku];
+	       a[k] /= d->K;
+	       ku++;
+	  }
+	  else { /* eq. 26 */
+	       for (j = 0; j < d->J; ++j)
+		    a[k] += d->B[k * d->J + j] * d->G0[j];
+	  }
 	  a[k] *= a[k];
      }
 
      free(Uu);
+     free(u);
      return a;
 }
 

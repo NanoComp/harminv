@@ -53,6 +53,7 @@ struct harminv_data_struct {
      double fmin, fmax;
      cmplx *z;
      cmplx *U0, *U1;
+     cmplx *G0, *G0_M, *D0; /* cached G, G_M, and D arrays for U0 */
      cmplx *B, *u;  /* eigen-solutions of U1*B = u*U0*B */
      cmplx *amps; /* mode amplitudes */
      double *errs; /* relative "error" estimates */
