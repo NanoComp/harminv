@@ -4,6 +4,8 @@ Harminv 1.1:
    Mandelshtam for helpful discussions and for letting me look
    at his code to check against mine.
 
+ * Amplitude calculation is no longer unstable for strongly decaying modes.
+
  * Used a more accurate eigensolver routine.
 
  * Added -e/-E/-a/-A/-Q options to screen outputs with
