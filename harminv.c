@@ -24,6 +24,23 @@
 
 /**************************************************************************/
 
+/* Workaround for weird problem observed on Debian/stable with glibc
+   2.2.5 and gcc 2.95.4, 3.3.1, and 3.4.0: the stand-alone code works
+   fine, but crashes in clog once I link from another (C++) program.
+   I can't reproduce this on Debian/testing with glibc 2.3.2, and it
+   passes valgrind on that machine (valgrind crashes on the first
+   machine), so I'm guessing this is some weird glibc bug...using
+   my "own" clog function seems to work around the problem. */
+
+#define clog my_clog
+
+static cmplx my_clog(cmplx z)
+{
+     return (log(cabs(z)) + I * carg(z));
+}
+
+/**************************************************************************/
+
 /* The harminv routines are designed to perform "harmonic inversion."
    That is, given a signal (a set of samples as a function of time),
    they decompose the signal into a finite number of (possibly
