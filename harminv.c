@@ -32,6 +32,7 @@
    machine), so I'm guessing this is some weird glibc bug...using
    my "own" clog function seems to work around the problem. */
 
+#undef clog
 #define clog my_clog
 
 static cmplx my_clog(cmplx z)
@@ -171,9 +172,10 @@ static cmplx cpow_i(cmplx c, int n)
      }
 }
 
+/* FIXME: instead of this, we should really do the first-order expansion
+   of the U matrix in |z - z2|, below. */
 #define SMALL (1e-12)
-#define SMALL2 (SMALL*SMALL)
-#define C_CLOSE(c1,c2) (creal(((c1) - (c2)) * conj((c1) - (c2))) < SMALL2)
+#define C_CLOSE(c1,c2) (cabs((c1) - (c2)) < SMALL)
 
 /**************************************************************************/
 
