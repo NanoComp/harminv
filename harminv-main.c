@@ -112,6 +112,7 @@ const double inf = 1.0 / 0.0;
 #define REL_ERR_THRESH inf
 #define AMP_THRESH 0.0
 #define REL_AMP_THRESH -1.0
+#define Q_THRESH 10.0
 
 static void usage(FILE *f)
 {
@@ -129,10 +130,11 @@ static void usage(FILE *f)
 	     "    -A <A> : discard amplitudes < <A> [default: %g]\n"
 	     "    -e <e> : discard relative errors > min * <e> [default: %e]\n"
 	     "    -E <E> : discard relative errors > <E> [default: %e]\n"
-,
+	     "    -Q <Q> : discard Q > <E> [default: %g]\n",
 	     NF,
 	     AMP_THRESH, REL_AMP_THRESH,
-	     ERR_THRESH, REL_ERR_THRESH);
+	     ERR_THRESH, REL_ERR_THRESH,
+	     Q_THRESH);
 }
 
 #define TWOPI 6.2831853071795864769252867665590057683943388
@@ -173,7 +175,7 @@ static int compar(const void *a, const void *b)
 
 typedef struct {
      int verbose;
-     double err_thresh, rel_err_thresh, amp_thresh, rel_amp_thresh;
+     double err_thresh, rel_err_thresh, amp_thresh, rel_amp_thresh, Q_thresh;
      double min_err, max_amp;
      int num_ok;
 } mode_ok_data;
@@ -204,10 +206,13 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
      else if (k == -2) { /* finish */
 	  if (ok_d->verbose && harminv_get_num_freqs(d))
 	       printf("# harminv: %d/%d modes are ok: "
-		      "errs <= %e and %e * %e\n, amps >= %g, %e * %g\n", 
+		      "errs <= %e and %e * %e\n, "
+		      "amps >= %g, %e * %g, "
+		      "Q >= %g\n", 
 		      ok_d->num_ok, harminv_get_num_freqs(d),
 		      ok_d->err_thresh, ok_d->rel_err_thresh, ok_d->min_err,
-		      ok_d->amp_thresh, ok_d->rel_amp_thresh, ok_d->max_amp);
+		      ok_d->amp_thresh, ok_d->rel_amp_thresh, ok_d->max_amp,
+		      ok_d->Q_thresh);
 	  return 0;
      }
 
@@ -217,7 +222,8 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
      ok = (errk <= ok_d->err_thresh
 	   && errk <= ok_d->min_err * ok_d->rel_err_thresh
 	   && ampk >= ok_d->amp_thresh
-	   && ampk >= ok_d->rel_amp_thresh * ok_d->max_amp);
+	   && ampk >= ok_d->rel_amp_thresh * ok_d->max_amp
+	   && fabs(harminv_get_Q(d,k)) >= ok_d->Q_thresh);
 
      ok_d->num_ok += ok;
 
@@ -244,8 +250,9 @@ int main(int argc, char **argv)
      ok_d.rel_err_thresh = REL_ERR_THRESH;
      ok_d.amp_thresh = AMP_THRESH;
      ok_d.rel_amp_thresh = REL_AMP_THRESH;
+     ok_d.Q_thresh = Q_THRESH;
 
-     while ((c = getopt(argc, argv, "hvVTwt:f:s:e:E:a:")) != -1)
+     while ((c = getopt(argc, argv, "hvVTwt:f:s:e:E:a:Q:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -274,6 +281,9 @@ int main(int argc, char **argv)
 		   break;
 	      case 'e':
 		   ok_d.rel_err_thresh = atof(optarg);
+		   break;
+	      case 'Q':
+		   ok_d.Q_thresh = atof(optarg);
 		   break;
 	      case 't':
 		   dt = atof(optarg);
@@ -395,8 +405,8 @@ int main(int argc, char **argv)
 	       err = harminv_get_frequency_error(hd, j);
 	       printf("%g, %e, %g, %g, %g, %e\n",
 		      freq * (specify_omega ? TWOPI : 1.0), decay,
-		      TWOPI * fabs(freq) / (2 * decay),
-		      cabs(amp), carg(amp), err);
+		      harminv_get_Q(hd, j),
+		      cabs(amp), -carg(amp), err);
 	  }
 
 #if !SOLVE_OK_ONLY

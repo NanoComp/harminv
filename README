@@ -89,50 +89,54 @@ or C++, you first #include <harminv.h>, then specify the data and the
 frequency range by calling harminv_data_create, returning a
 harminv_data data structure:
 
-harminv_data harminv_data_create(int n, const harminv_complex *signal,
-                                 double fmin, double fmax, int nf);
+	harminv_data harminv_data_create(int n, 
+                                         const harminv_complex *signal,
+                                         double fmin, double fmax, int nf);
 
 signal is a pointer to an array of n complex numbers.  In C++,
 harminv_complex is std::complex<double>.  In C, harminv_complex is a
 double[2] with the real parts in signal[i][0] and the imaginary parts
-in signal[i][1].  fmin and fmax are the frequency range to search, and
-nf is an upper bound on the number of frequencies in that range (100
-is typically a safe value).  Frequencies are in units corresponding to
-a sampling interval of 1 time unit--if your actual sampling interval
-is dt, then you should rescale your frequencies by multiplying them by
-dt.
+in signal[i][1].  (For a real signal, set the imaginar parts to zero.)
+fmin and fmax are the frequency range to search, and nf is an upper
+bound on the number of frequencies in that range (100 is typically a
+safe value).  Frequencies are in units corresponding to a sampling
+interval of 1 time unit--if your actual sampling interval is dt, then
+you should rescale your frequencies by multiplying them by dt.
 
 Then, you solve for the frequencies by calling:
 
-void harminv_solve(harminv_data d);
+	void harminv_solve(harminv_data d);
 
 Then, the frequencies and other data can be extracted from d by the
 following routines.  The number N of frequencies found is returned by:
 
-int harminv_get_num_freqs(harminv_data d);
+	int harminv_get_num_freqs(harminv_data d);
 
 Then, for each index 0 <= k < N, the corresponding frequency and decay
 constant (as defined in 'man harminv') are returned by:
 
-double harminv_get_freq(harminv_data d, int k);
-double harminv_get_decay(harminv_data d, int k);
+	double harminv_get_freq(harminv_data d, int k);
+	double harminv_get_decay(harminv_data d, int k);
 
-An array of the N corresponding complex amplitudes is allocated and
-returned by:
+Alternative, you can get the complex angular frequency (omega =
+2*pi*freq - i*decay) by:
 
-harminv_complex *harminv_compute_amplitudes(harminv_data d);
+	harminv_complex harminv_get_omega(harminv_data d, int k);
 
-When you are done with this array, you should deallocate it by calling
-free().  Similarly, an array of N "error" figures of merit is returned
-by:
+You can get the "quality factor" Q (pi |freq| / decay) by:
 
-double *harminv_compute_frequency_errors(harminv_data d);
+	double harminv_get_Q(harminv_data d, int k);
 
-As described in 'man harminv', this figure of merit is not simply an
-error bar, and its quantitative interpretation seems difficult.  (See
-harminv.c for a reference to the method used to compute this figure of
-merit.)  However, solutions with a much larger error figure of merit
-compared to other solutions are likely to be spurious.
+The complex amplitude (|amp| * exp(-I phase)) for each k is returned by:
+
+	harminv_complex harminv_get_amplitude(harminv_data d, int k);
+
+A crude estimate of the relative error in the (complex) frequency is:
+
+	double harminv_get_frequency_error(harminv_data d, int k);
+
+As described in 'man harminv', this is not really an error bar, and
+should be treated more as a figure of merit (smaller is better).
 
 *** Linking to -lharminv: ***
 

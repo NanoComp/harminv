@@ -677,7 +677,7 @@ int harminv_get_num_freqs(const harminv_data d)
      return d->nfreqs;
 }
 
-double harminv_get_freq(const harminv_data d, int k)
+double harminv_get_freq(harminv_data d, int k)
 {
      CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
@@ -685,7 +685,7 @@ double harminv_get_freq(const harminv_data d, int k)
      return(-carg(d->u[k]) / TWOPI);
 }
 
-double harminv_get_decay(const harminv_data d, int k)
+double harminv_get_decay(harminv_data d, int k)
 {
      CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
@@ -693,7 +693,13 @@ double harminv_get_decay(const harminv_data d, int k)
      return(-log(cabs(d->u[k])));
 }
 
-cmplx harminv_get_omega(const harminv_data d, int k)
+double harminv_get_Q(harminv_data d, int k)
+{
+     return(TWOPI * fabs(harminv_get_freq(d, k))
+	    / (2 * harminv_get_decay(d, k)));
+}
+
+cmplx harminv_get_omega(harminv_data d, int k)
 {
      CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,

@@ -100,11 +100,19 @@ The phase shift (in radians) of the sinusoids, as given by the formula
 above.
 .TP
 .B error
-An estimate of the degree of confidence in the mode information
-(larger error means less confidence).  A precise quantitative
-interpretation is difficult, unfortunately.  However, modes with
-errors much larger than the modes with the smallest errors may be
-spurious (e.g. because your data don't exactly fit the assumed model).
+A crude estimate of the relative error in the (complex) frequency.
+This is not really an error bar, however, so you should treat it more
+as a figure of merit (smaller is better) for each mode.
+.SH SPURIOUS MODES
+Typically, harminv will find a number of spurious solutions in
+addition to the desired solutions, especially if your data are noisy.
+Such solutions are characterized by large errors, small amplitudes,
+and/or small Q (large decay rates / broad linewidths).  You can omit
+these from the output by the error/Q/amplitude screening options
+defined below.
+
+By default, modes with error > 0.1 and Q < 10 are automatically
+omitted, but it is likely that you will need to set stricter limits.
 .SH UNITS
 The frequency (and decay) values, both input and output, are specified
 in units of 1/time, where the units of time are determined by the
@@ -138,6 +146,11 @@ Specify period-ranges instead of frequency-ranges on the command line
 (in units of time corresponding to those specified by \fB-t\fR).  The
 output is still frequency and not period, however.
 .TP
+.B -w
+Specify angular frequencies instead of frequencies, and output angular
+frequency instead of frequency.  (Angular frequency is frequency
+multiplied by 2 pi).
+.TP
 \fB\-t\fR \fIdt\fR
 Specify the sampling interval \fIdt\fR; this determines the units of
 time used throughout the input and output.  Defaults to 1.0.
@@ -160,6 +173,27 @@ Specify how the outputs are sorted, where \fIsort\fR is one of
 frequency/error/Q/decay/amplitude.  (Only the first character of
 \fIsort\fR matters.)  All sorts are in ascending order.  The default
 is to sort by frequency.
+.TP
+\fB\-e\fR \fIerr\fR
+Omit any modes with error (see above) greater than \fIerr\fR times
+the largest error among the computed modes.  Defaults to no limit.
+\fB\-e\fR 1000 often works well.
+.TP
+\fB\-E\fR \fIerr\fR
+Omit any modes with error (see above) greater than \fIerr\fR.  Defaults
+to 0.1.
+.TP
+\fB\-a\fR \fIamp\fR
+Omit any modes with amplitude (see above) less than \fIamp\fR times
+the largest amplitude among the computed modes.  Defaults to no limit.
+.TP
+\fB\-A\fR \fIamp\fR
+Omit any modes with amplitude (see above) less than \fIamp\fR.
+Defaults to no limit.
+.TP
+\fB\-Q\fR \fIq\fR
+Omit any modes with Q (see above) less than \fIq\fR.  Defaults
+to 10.
 .SH BUGS
 Send bug reports to S. G. Johnson, stevenj@alum.mit.edu.
 .SH AUTHORS
