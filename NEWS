@@ -1,3 +1,8 @@
+Harminv 1.0.2:
+
+	* Corrected inadvertent windowing of data that degraded
+	  accuracy in the case of very short signals.
+
 Harminv 1.0.1:
 
 	* Corrected some minor release glitches.
