@@ -1,13 +1,13 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(harminv, 1.1, stevenj@alum.mit.edu)
+AC_INIT(harminv, 1.2, stevenj@alum.mit.edu)
 AM_INIT_AUTOMAKE(1.6)
 AC_CONFIG_SRCDIR(harminv.c)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
 # Shared-library version number; indicates api compatibility, and is
-# *not* the same as the "public" version number.
-SHARED_VERSION_INFO="2:0:0"
+# *not* the same as the "public" version number.  CURRENT:REVISION:AGE
+SHARED_VERSION_INFO="2:1:0"
 AC_SUBST(SHARED_VERSION_INFO)
 AM_ENABLE_SHARED(no) dnl shared libs cause too many headaches to be default
 

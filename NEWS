@@ -1,3 +1,13 @@
+Harminv 1.2:
+
+ * Command line tool now defaults to a particular spectral "density"
+   (set by the -d option), rather than a number of basis modes,
+   since using too many basis modes leads to a singular eigenproblem
+   and numerical instability.
+
+ * Use long double precision, if available, to reduce accumulation
+   of floating-point errors while computing Fourier/Z transforms.
+
 Harminv 1.1:
 
  * Corrected bug in frequency-error calculation; thanks to V. A.
