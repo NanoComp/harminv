@@ -134,6 +134,27 @@ harminv.c for a reference to the method used to compute this figure of
 merit.)  However, solutions with a much larger error figure of merit
 compared to other solutions are likely to be spurious.
 
+*** Linking to -lharminv: ***
+
+To link to the library, you need to not only link to -lharminv, but
+also to the math library, the BLAS and LAPACK libraries (see below),
+and any libraries that are required to link C with Fortran code (like
+LAPACK).  If you have the pkg-config program installed (standard on most
+GNU/Linux systems), you can simply do:
+	pkg-config --cflags harminv
+	pkg-config --libs harminv
+to get the flags for compiling and linking, respectively.  You may
+need to tell pkg-config where to find harminv.pc if harminv was
+installed under /usr/local (the default)...in this case, you would
+specify "/usr/local/lib/pkgconfig/harminv.pc" instead of "harminv"
+above.
+
+There is an additional wrinkle.  If you configured harminv with
+--with-cxx, or if your C compiler did not support C99 complex numbers
+and the configure script automatically switched to C++, then you will
+need to link to harminv with the C++ linker, even if your program is
+written in C, in order to link the C++ libraries.
+
 Installation:
 =============
 
@@ -177,7 +198,7 @@ In order to compile, harminv requires either:
 
 * An ANSI C compiler supporting complex numbers, as defined in
   the ANSI C99 standard (or a reasonable approximation thereof).
-  For example, gcc-2.95 is fine.
+  For example, gcc-2.95 with GNU libc is fine.
 
 * A C++ compiler supporting the complex<double> standard template class.
 
