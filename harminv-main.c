@@ -34,7 +34,7 @@
 /* eat whitespace, including #... comments, from the file.  Returns the
    number of newlines read (so that a line count can be maintained).  If
    echo_comments != 0, then echo #... comments to stdout. */
-int eat_whitespace(FILE *f, int echo_comments)
+static int eat_whitespace(FILE *f, int echo_comments)
 {
      int c, newlines = 0;
      do {
@@ -63,7 +63,7 @@ int eat_whitespace(FILE *f, int echo_comments)
      return newlines;
 }
 
-cmplx *read_input_data(FILE *f, int *n, int verbose)
+static cmplx *read_input_data(FILE *f, int *n, int verbose)
 {
     cmplx *data = NULL;
     int line = 1, n_alloc = 0;
@@ -112,8 +112,7 @@ const double inf = 1.0 / 0.0;
 #define AMP_THRESH 0.0
 #define REL_AMP_THRESH 0.0
 
-
-void usage(FILE *f)
+static void usage(FILE *f)
 {
      fprintf(f, "Usage: harminv [options] <freq-min>-<freq-max>...\n"
 	     "Options: \n"
@@ -137,19 +136,17 @@ void usage(FILE *f)
 #define TWOPI 6.2831853071795864769252867665590057683943388
 
 harminv_data hd;
-cmplx *amps = NULL;
-double *errs = NULL;
 
 enum {
      SORT_FREQUENCY, SORT_DECAY, SORT_ERROR, SORT_AMPLITUDE, SORT_Q
 } sortby = SORT_FREQUENCY;
 
-int cmp(double a, double b)
+static int cmp(double a, double b)
 {
      return a > b ? 1 : (a < b ? -1 : 0);
 }
 
-int compar(const void *a, const void *b)
+static int compar(const void *a, const void *b)
 {
      const int *ia = (const int *) a;
      const int *ib = (const int *) b;
@@ -160,9 +157,11 @@ int compar(const void *a, const void *b)
 	 case SORT_DECAY:
 	      return cmp(harminv_get_decay(hd,*ia), harminv_get_decay(hd,*ib));
 	 case SORT_ERROR:
-	      return cmp(errs[*ia], errs[*ib]);
+	      return cmp(harminv_get_frequency_error(hd, *ia), 
+			 harminv_get_frequency_error(hd, *ib));
 	 case SORT_AMPLITUDE:
-	      return cmp(cabs(amps[*ia]), cabs(amps[*ib]));
+	      return cmp(cabs(harminv_get_amplitude(hd, *ia)), 
+			 cabs(harminv_get_amplitude(hd, *ib)));
 	 case SORT_Q:
 	      return cmp(harminv_get_freq(hd,*ia) / harminv_get_decay(hd,*ia),
 			 harminv_get_freq(hd,*ib) / harminv_get_decay(hd,*ib));
@@ -170,22 +169,72 @@ int compar(const void *a, const void *b)
      return 0;
 }
 
+typedef struct {
+     int verbose;
+     double err_thresh, rel_err_thresh, amp_thresh, rel_amp_thresh;
+     double min_err, max_amp;
+     int num_ok;
+} mode_ok_data;
+
+static int mode_ok(harminv_data d, int k, void *ok_d_)
+{
+     mode_ok_data *ok_d = (mode_ok_data *) ok_d_;
+     double errk, ampk;
+     int ok;
+
+     errk = harminv_get_frequency_error(d, k);
+     ampk = cabs(harminv_get_amplitude(d, k));
+
+     if (k == 0) { /* first mode, compute min_err, max_amp */
+	  int i;
+	  ok_d->num_ok = 0;
+	  ok_d->min_err =  errk;
+	  ok_d->max_amp =  ampk;
+	  for (i = 1; i < harminv_get_num_freqs(d); ++i) {
+	       double err, amp;
+	       if ((err = harminv_get_frequency_error(d, i)) < ok_d->min_err)
+		    ok_d->min_err = err;
+	       if ((amp = cabs(harminv_get_amplitude(d, i))) > ok_d->max_amp)
+		    ok_d->max_amp = amp;
+	  }
+     }
+
+     ok = (errk <= ok_d->err_thresh
+	   && errk <= ok_d->min_err * ok_d->rel_err_thresh
+	   && ampk >= ok_d->amp_thresh
+	   && ampk >= ok_d->rel_amp_thresh * ok_d->max_amp);
+
+     ok_d->num_ok += ok;
+
+     if (ok_d->verbose && k == harminv_get_num_freqs(d) - 1)
+	  printf("# harminv: %d/%d modes are ok: "
+		 "errs <= %e and %e * %e\n, amps >= %g, %e * %g\n", 
+		 ok_d->num_ok, harminv_get_num_freqs(d),
+		 ok_d->err_thresh, ok_d->rel_err_thresh, ok_d->min_err,
+		 ok_d->amp_thresh, ok_d->rel_amp_thresh, ok_d->max_amp);
+
+     return ok;
+}
+
+#define SOLVE_OK_ONLY 0
 
 int main(int argc, char **argv)
 {
+     int verbose = 0;
      int c;
      extern char *optarg;
      extern int optind;
-     int verbose = 0;
      int specify_periods = 0;
      double dt = 1.0;
-     double err_thresh = ERR_THRESH;
-     double rel_err_thresh = REL_ERR_THRESH;
-     double amp_thresh = AMP_THRESH;
-     double rel_amp_thresh = REL_AMP_THRESH;
+     mode_ok_data ok_d;
      int n, nf = NF;
      int iarg;
      cmplx *data;
+
+     ok_d.err_thresh = ERR_THRESH;
+     ok_d.rel_err_thresh = REL_ERR_THRESH;
+     ok_d.amp_thresh = AMP_THRESH;
+     ok_d.rel_amp_thresh = REL_AMP_THRESH;
 
      while ((c = getopt(argc, argv, "hvVTt:f:s:e:E:a:")) != -1)
 	  switch (c) {
@@ -203,16 +252,16 @@ int main(int argc, char **argv)
 		   specify_periods = 1;
 		   break;
 	      case 'a':
-		   rel_amp_thresh = atof(optarg);
+		   ok_d.rel_amp_thresh = atof(optarg);
 		   break;
 	      case 'A':
-		   amp_thresh = atof(optarg);
+		   ok_d.amp_thresh = atof(optarg);
 		   break;
 	      case 'E':
-		   err_thresh = atof(optarg);
+		   ok_d.err_thresh = atof(optarg);
 		   break;
 	      case 'e':
-		   rel_err_thresh = atof(optarg);
+		   ok_d.rel_err_thresh = atof(optarg);
 		   break;
 	      case 't':
 		   dt = atof(optarg);
@@ -270,10 +319,11 @@ int main(int argc, char **argv)
 
      printf("frequency, decay constant, Q, amplitude, phase, error\n");
 
+     ok_d.verbose = verbose;
+	  
      for (iarg = optind; iarg < argc; ++iarg) {
 	  double fmin, fmax;
-	  double min_err = 1e20, max_amp = 0;
-	  int i, cur_nf, prev_nf;
+	  int i;
 	  int *isort = NULL;
 
 	  if (sscanf(argv[iarg], "%lf-%lf", &fmin, &fmax) != 2) {
@@ -300,74 +350,45 @@ int main(int argc, char **argv)
 
 	  hd = harminv_data_create(n, data, fmin*dt, fmax*dt, nf);
 	  
-	  harminv_solve_once(hd);
-	  prev_nf = cur_nf = harminv_get_num_freqs(hd);
+#if SOLVE_OK_ONLY
+	  harminv_solve_ok_modes(hd, mode_ok, &ok_d);
+#else
+	  harminv_solve(hd);
+#endif
 
-	  /* keep re-solving as long as spurious solutions are eliminated */
-	  if (verbose) {
-	       printf("# harminv number of solution frequencies = %d", cur_nf);
-	       fflush(stdout);
-	  }
-	  do {
-	       prev_nf = cur_nf;
-	       harminv_solve_again(hd);
-	       cur_nf = harminv_get_num_freqs(hd);
-	       if (verbose) {
-		    printf(", then %d", cur_nf);
-		    fflush(stdout);
-	       }
-	  } while (cur_nf < prev_nf);
-	  if (verbose)
-	       printf("\n");
-
-	  if (cur_nf > prev_nf)
-	       fprintf(stderr, "harminv: warning, number of solutions increased from %d to %d!\n", prev_nf, cur_nf);
-
-	  errs = harminv_compute_frequency_errors(hd);
-	  amps = harminv_compute_amplitudes(hd);
-
-	  if (harminv_get_num_freqs(hd)) min_err = errs[0];
-	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) {
-	       if (errs[i] < min_err) min_err = errs[i];
-	       if (cabs(amps[i]) > max_amp) max_amp = cabs(amps[i]);
-	  }
-	  if (verbose) {
-	       cur_nf = 0;
-	       for (i = 0; i < harminv_get_num_freqs(hd); ++i)
-		    if (errs[i] / fabs(dt) <= err_thresh
-			&& errs[i] <= min_err * rel_err_thresh
-			&& cabs(amps[i]) >= amp_thresh
-			&& cabs(amps[i]) >= rel_amp_thresh * max_amp)
-			 ++cur_nf;
-	       printf("# harminv number of frequencies with err < %e and "
-		      "< %e * %e, amp > %g and %e * %g: %d\n",
-		      err_thresh, rel_err_thresh, min_err / fabs(dt),
-		      amp_thresh, rel_amp_thresh, max_amp, cur_nf);
-	  }
-	       
+	  ok_d.verbose = 0;
+	  if (harminv_get_num_freqs(hd))
+	       mode_ok(hd, 0, &ok_d); /* initialize ok_d */
 
 	  CHK_MALLOC(isort, int, harminv_get_num_freqs(hd));
 	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) 
 	       isort[i] = i;
 	  qsort(isort, harminv_get_num_freqs(hd), sizeof(int), compar);
-	  
+
 	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) {
-	       double freq, decay;
+	       double freq, decay, err;
+	       cmplx amp;
 	       int j = isort[i];
-	       if (errs[j] / fabs(dt) > err_thresh
-		   || errs[j] > min_err * rel_err_thresh
-		   || cabs(amps[j]) < amp_thresh
-		   || cabs(amps[j]) < rel_amp_thresh * max_amp)
+#if SOLVE_OK_ONLY
+	       CHECK(mode_ok(hd, j, &ok_d), "bug: invalid mode");
+#else
+	       if (!mode_ok(hd, j, &ok_d))
 		    continue;
+#endif
 	       freq = harminv_get_freq(hd, j) / dt;
 	       decay = harminv_get_decay(hd, j) / fabs(dt);
+	       amp = harminv_get_amplitude(hd, j);
+	       err = harminv_get_frequency_error(hd, j);
 	       printf("%g, %e, %g, %g, %g, %e\n",
 		      freq, decay, TWOPI * fabs(freq) / (2 * decay),
-		      cabs(amps[j]), carg(amps[j]), errs[j] / fabs(dt));
+		      cabs(amp), carg(amp), err);
 	  }
 
-	  free(amps);
-	  free(errs);
+	  ok_d.verbose = verbose;
+#if !SOLVE_OK_ONLY
+	  if (harminv_get_num_freqs(hd))  /* do mode_ok verbose output */
+	       mode_ok(hd, harminv_get_num_freqs(hd) - 1, &ok_d);
+#endif
 
 	  harminv_data_destroy(hd);
      }

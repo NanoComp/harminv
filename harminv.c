@@ -364,9 +364,9 @@ harminv_data harminv_data_create(int n,
 
      init_z(d, nf, d->z);
 
-     d->nfreqs = 0;
-     d->B = d->u = d->amps = d->errs
-	  = (cmplx *) NULL;  /* we haven't computed eigen-solutions yet */
+     d->nfreqs = -1;  /* we haven't computed eigen-solutions yet */
+     d->B = d->u = d->amps = (cmplx *) NULL;
+     d->errs = (double *) NULL;
      
      return d;
 }
@@ -498,21 +498,44 @@ void harminv_solve_once(harminv_data d)
 /**************************************************************************/
 
 /* After solving once, solve again using the solutions from last
-   time as the input to the spectra estimator this time. */
-void harminv_solve_again(harminv_data d)
+   time as the input to the spectra estimator this time. 
+
+   Optionally, if mode_ok is not NULL, we can only use the solutions k from
+   last time that pass ok(d, k, ok_d).  Currently, this is not recommended
+   as it seems to make things worse.  */
+void harminv_solve_again(harminv_data d, harminv_mode_ok_func ok, void *ok_d)
 {
-     int i;
-     CHECK(d->B && d->u, "haven't computed eigensolutions yet");
+     int i, j;
+     char *mode_ok = 0;
+     CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
+
+     if (!d->nfreqs) return; /* no eigensolutions to work with */
+
+     if (ok) {
+	  CHK_MALLOC(mode_ok, char, d->nfreqs);
+	  for (i = 0; i < d->nfreqs; ++i)
+	       mode_ok[i] = ok(d, i, ok_d);
+     }
 
      free(d->B);
      free(d->U1); free(d->U0);
      free(d->z);
      free(d->amps);
      free(d->errs);
+     d->B = d->U1 = d->U0 = d->z = d->amps = (cmplx *) NULL;
+     d->errs = (double *) NULL;
 
      /* Spectral grid needs to be on the unit circle or system is unstable: */
-     for (i = 0; i < d->nfreqs; ++i)
-	  d->u[i] /= cabs(d->u[i]);
+     for (i = j = 0; i < d->nfreqs; ++i)
+	  if (!ok || mode_ok[i])
+	       d->u[j++] = d->u[i] / cabs(d->u[i]);
+     d->nfreqs = j;
+
+     free(mode_ok);
+
+     d->u = (cmplx *) realloc(d->u, sizeof(cmplx) * d->nfreqs);
+
+     if (!d->nfreqs) return; /* no eigensolutions to work with */
 
      init_z(d, d->nfreqs, d->u);
 
@@ -524,8 +547,11 @@ void harminv_solve_again(harminv_data d)
 
 /**************************************************************************/
 
-/* keep re-solving as long as spurious solutions are eliminated */
-void harminv_solve(harminv_data d)
+/* Keep re-solving as long as spurious solutions are eliminated.
+
+   Currently, it is recommended that you use harminv_solve (i.e. pass ok = 0);
+   see harminv_solve_again. */
+void harminv_solve_ok_modes(harminv_data d, harminv_mode_ok_func ok,void *ok_d)
 {
 
      harminv_solve_once(d);
@@ -535,15 +561,28 @@ void harminv_solve(harminv_data d)
 	as long as the number of eigenvalues decreases.   Effectively,
         this gives us more basis functions where the modes are. */
      {
-	  int prev_nf, cur_nf;
+	  int prev_nf, cur_nf, nf_ok;
 	  cur_nf = harminv_get_num_freqs(d);
 	  do {
 	       prev_nf = cur_nf;
-	       harminv_solve_again(d);
+	       harminv_solve_again(d, ok, ok_d);
 	       cur_nf = harminv_get_num_freqs(d);
-	  } while (cur_nf < prev_nf);
+	       if (ok)
+		    for (nf_ok = 0; nf_ok < cur_nf 
+			      && ok(d, nf_ok, ok_d); ++nf_ok)
+			 ;
+	       else
+		    nf_ok = cur_nf;
+	  } while (cur_nf < prev_nf || nf_ok < cur_nf);
 	  /* FIXME: solve one more time for good measure? */
      }
+}
+
+/**************************************************************************/
+
+void harminv_solve(harminv_data d)
+{
+     harminv_solve_ok_modes(d, NULL, NULL);
 }
 
 /**************************************************************************/
@@ -559,7 +598,8 @@ double *harminv_compute_frequency_errors(harminv_data d)
      cmplx *U2, *U2b;
      double *freq_err;
 
-     CHECK(d->B && d->u, "haven't computed eigensolutions yet");
+     CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
+     if (!d->nfreqs) return NULL;
 
      CHK_MALLOC(freq_err, double, d->nfreqs);
      
@@ -604,7 +644,9 @@ cmplx *harminv_compute_amplitudes(harminv_data d)
      cmplx *Uu;
      cmplx *a; /* the amplitudes of the eigenfrequencies */
 
-     CHECK(d->B, "haven't computed eigensolutions yet");
+     CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
+     if (!d->nfreqs) return NULL;
+
      CHK_MALLOC(a, cmplx, d->nfreqs);
 
      CHK_MALLOC(Uu, cmplx, d->J * d->nfreqs);
@@ -632,7 +674,7 @@ int harminv_get_num_freqs(const harminv_data d)
 
 double harminv_get_freq(const harminv_data d, int k)
 {
-     CHECK(d->u, "haven't computed eigensolutions yet");
+     CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_freq");
      return(-carg(d->u[k]) / TWOPI);
@@ -640,7 +682,7 @@ double harminv_get_freq(const harminv_data d, int k)
 
 double harminv_get_decay(const harminv_data d, int k)
 {
-     CHECK(d->u, "haven't computed eigensolutions yet");
+     CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_freq");
      return(-log(cabs(d->u[k])));
@@ -648,7 +690,7 @@ double harminv_get_decay(const harminv_data d, int k)
 
 cmplx harminv_get_omega(const harminv_data d, int k)
 {
-     CHECK(d->u, "haven't computed eigensolutions yet");
+     CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_freq");
      return(-clog(d->u[k]));
@@ -663,7 +705,7 @@ cmplx harminv_get_amplitude(harminv_data d, int k)
      return d->amps[k];
 }
 
-cmplx harminv_get_frequency_error(harminv_data d, int k)
+double harminv_get_frequency_error(harminv_data d, int k)
 {
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_freq");

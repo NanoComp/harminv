@@ -54,7 +54,8 @@ struct harminv_data_struct {
      cmplx *z;
      cmplx *U0, *U1;
      cmplx *B, *u;  /* eigen-solutions of U1*B = u*U0*B */
-     cmplx *amps, *errs;  /* mode amplitudes and relative "error" estimates */
+     cmplx *amps; /* mode amplitudes */
+     double *errs; /* relative "error" estimates */
 };
 
 #endif /* HARMINV_INT_H */

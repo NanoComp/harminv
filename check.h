@@ -22,7 +22,7 @@
 
 #define CHECK(condition, message) do { \
      if (!(condition))  { \
-          fprintf(stderr, "CHECK failure on line %d of " __FILE__ ": " \
+          fprintf(stderr, "harminv: failure on line %d of " __FILE__ ": " \
 		  message "\n", __LINE__);  exit(EXIT_FAILURE); \
      } \
 } while (0)
