@@ -128,6 +128,7 @@ const double inf = 1.0 / 0.0;
 
 #define DENSITY 1.1
 #define NFMIN 2
+#define NFMAX 300
 #define ERR_THRESH 0.1
 #define REL_ERR_THRESH inf
 #define AMP_THRESH 0.0
@@ -417,15 +418,10 @@ int main(int argc, char **argv)
 	  ok_d.fmax = fmax*dt;
 
 	  nf = (fmax - fmin) * dt * n * density;
+	  if (nf > NFMAX) nf = NFMAX;
 	  if (nf < nfmin) nf = nfmin;
 	  if (verbose)
 	       printf("# using %d spectral basis functions\n", nf);
-	  if (nf > 400)
-	       fprintf(stderr,
-"# WARNING: large number (%d) of spectral basis functions \n"
-"#          for frequencies %g-%g with %d points and density -d %g\n"
-"#          -- you might want to narrow the bandwidth or use a lower -d\n",
-		       nf, fmin, fmax, n, density);
 
 	  hd = harminv_data_create(n, data, fmin*dt, fmax*dt, nf);
 	  
