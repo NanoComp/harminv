@@ -511,6 +511,7 @@ void harminv_solve_again(harminv_data d, harminv_mode_ok_func ok, void *ok_d)
 
      if (ok) {
 	  CHK_MALLOC(mode_ok, char, d->nfreqs);
+	  ok(d, -1, ok_d); /* initialize */
 	  for (i = 0; i < d->nfreqs; ++i)
 	       mode_ok[i] = ok(d, i, ok_d);
      }
@@ -529,7 +530,10 @@ void harminv_solve_again(harminv_data d, harminv_mode_ok_func ok, void *ok_d)
 	       d->u[j++] = d->u[i] / cabs(d->u[i]);
      d->nfreqs = j;
 
-     free(mode_ok);
+     if (ok) {
+	  ok(d, -2, ok_d); /* finish */
+	  free(mode_ok);
+     }
 
      d->u = (cmplx *) realloc(d->u, sizeof(cmplx) * d->nfreqs);
 
@@ -565,10 +569,13 @@ void harminv_solve_ok_modes(harminv_data d, harminv_mode_ok_func ok,void *ok_d)
 	       prev_nf = cur_nf;
 	       harminv_solve_again(d, ok, ok_d);
 	       cur_nf = harminv_get_num_freqs(d);
-	       if (ok)
+	       if (ok) {
+		    ok(d, -1, ok_d); /* initialize */
 		    for (nf_ok = 0; nf_ok < cur_nf 
 			      && ok(d, nf_ok, ok_d); ++nf_ok)
 			 ;
+		    ok(d, -2, ok_d); /* finish */
+	       }
 	       else
 		    nf_ok = cur_nf;
 	  } while (cur_nf < prev_nf || nf_ok < cur_nf);

@@ -111,7 +111,7 @@ const double inf = 1.0 / 0.0;
 #define ERR_THRESH 0.1
 #define REL_ERR_THRESH inf
 #define AMP_THRESH 0.0
-#define REL_AMP_THRESH 0.0
+#define REL_AMP_THRESH -1.0
 
 static void usage(FILE *f)
 {
@@ -184,22 +184,35 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
      double errk, ampk;
      int ok;
 
-     errk = harminv_get_frequency_error(d, k);
-     ampk = cabs(harminv_get_amplitude(d, k));
-
-     if (k == 0) { /* first mode, compute min_err, max_amp */
+     if (k == -1) { /* initialize */
 	  int i;
 	  ok_d->num_ok = 0;
-	  ok_d->min_err =  errk;
-	  ok_d->max_amp =  ampk;
+	  if (!harminv_get_num_freqs(d))
+	       return 0;
+	  ok_d->min_err = harminv_get_frequency_error(d, 0);;
+	  ok_d->max_amp = cabs(harminv_get_amplitude(d, 0));
 	  for (i = 1; i < harminv_get_num_freqs(d); ++i) {
 	       double err, amp;
 	       if ((err = harminv_get_frequency_error(d, i)) < ok_d->min_err)
 		    ok_d->min_err = err;
 	       if ((amp = cabs(harminv_get_amplitude(d, i))) > ok_d->max_amp)
 		    ok_d->max_amp = amp;
+	  
 	  }
+	  return 0;
      }
+     else if (k == -2) { /* finish */
+	  if (ok_d->verbose && harminv_get_num_freqs(d))
+	       printf("# harminv: %d/%d modes are ok: "
+		      "errs <= %e and %e * %e\n, amps >= %g, %e * %g\n", 
+		      ok_d->num_ok, harminv_get_num_freqs(d),
+		      ok_d->err_thresh, ok_d->rel_err_thresh, ok_d->min_err,
+		      ok_d->amp_thresh, ok_d->rel_amp_thresh, ok_d->max_amp);
+	  return 0;
+     }
+
+     errk = harminv_get_frequency_error(d, k);
+     ampk = cabs(harminv_get_amplitude(d, k));
 
      ok = (errk <= ok_d->err_thresh
 	   && errk <= ok_d->min_err * ok_d->rel_err_thresh
@@ -208,17 +221,10 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 
      ok_d->num_ok += ok;
 
-     if (ok_d->verbose && k == harminv_get_num_freqs(d) - 1)
-	  printf("# harminv: %d/%d modes are ok: "
-		 "errs <= %e and %e * %e\n, amps >= %g, %e * %g\n", 
-		 ok_d->num_ok, harminv_get_num_freqs(d),
-		 ok_d->err_thresh, ok_d->rel_err_thresh, ok_d->min_err,
-		 ok_d->amp_thresh, ok_d->rel_amp_thresh, ok_d->max_amp);
-
      return ok;
 }
 
-#define SOLVE_OK_ONLY 0
+#define SOLVE_OK_ONLY 0 /* 1 for experimental solver */
 
 int main(int argc, char **argv)
 {
@@ -366,9 +372,7 @@ int main(int argc, char **argv)
 	  harminv_solve(hd);
 #endif
 
-	  ok_d.verbose = 0;
-	  if (harminv_get_num_freqs(hd))
-	       mode_ok(hd, 0, &ok_d); /* initialize ok_d */
+	  mode_ok(hd, -1, &ok_d); /* initialize ok_d */
 
 	  CHK_MALLOC(isort, int, harminv_get_num_freqs(hd));
 	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) 
@@ -395,10 +399,8 @@ int main(int argc, char **argv)
 		      cabs(amp), carg(amp), err);
 	  }
 
-	  ok_d.verbose = verbose;
 #if !SOLVE_OK_ONLY
-	  if (harminv_get_num_freqs(hd))  /* do mode_ok verbose output */
-	       mode_ok(hd, harminv_get_num_freqs(hd) - 1, &ok_d);
+	  mode_ok(hd, -2, &ok_d);
 #endif
 
 	  harminv_data_destroy(hd);
