@@ -377,7 +377,7 @@ int main(int argc, char **argv)
      }
 
      if (verbose)
-	  printf("# harminv: %d inputs, dt = %g, nf = %d\n", n, dt, nf);
+	  printf("# harminv: %d inputs, dt = %g\n", n, dt);
 
      printf("frequency, decay constant, Q, amplitude, phase, error\n");
 
@@ -421,7 +421,8 @@ int main(int argc, char **argv)
 	  if (nf > NFMAX) nf = NFMAX;
 	  if (nf < nfmin) nf = nfmin;
 	  if (verbose)
-	       printf("# using %d spectral basis functions\n", nf);
+	       printf("# using %d spectral basis functions, density %g\n", 
+		      nf, nf / ((fmax - fmin) * dt * n));
 
 	  hd = harminv_data_create(n, data, fmin*dt, fmax*dt, nf);
 	  
