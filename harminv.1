@@ -96,13 +96,10 @@ above.
 .TP
 .B error
 An estimate of the degree of confidence in the mode information
-(larger error means less confidence).  If your data are very clean,
-then this is an approximate upper bound on the absolute error in both
-the frequency and decay constant.  Otherwise (e.g. if the modes
-aren't exactly exponentially decaying), the direct interpretation of
-this number is less certain.  In any case, modes with errors much
-larger than the modes with the smallest errors may be spurious (due to
-the fact that your data don't exactly fit the assumed model).
+(larger error means less confidence).  A precise quantitative
+interpretation is difficult, unfortunately.  However, modes with
+errors much larger than the modes with the smallest errors may be
+spurious (e.g. because your data don't exactly fit the assumed model).
 .SH UNITS
 The frequency (and decay) values, both input and output, are specified
 in units of 1/time, where the units of time are determined by the
