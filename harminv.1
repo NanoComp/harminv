@@ -84,10 +84,11 @@ in the above formula.  The inverse of this is often called the
 .TP
 .B Q
 A conventional, dimensionless expression of the decay lifetime: Q = pi
-|\fIfrequency\fI| / \fIdecay\fR.  Q is the number of periods for the
-"energy" in the mode (the squared amplitude) to decay by exp(-2 pi).
-Equivalently, if you look at the power spectrum (|Fourier
-transform|^2), 1/Q is the fractional width of the peak at half maximum.
+|\fIfrequency\fI| / \fIdecay\fR.  Q, which stands for "quality
+factor", is the number of periods for the "energy" in the mode (the
+squared amplitude) to decay by exp(-2 pi).  Equivalently, if you look
+at the power spectrum (|Fourier transform|^2), 1/Q is the fractional
+width of the peak at half maximum.
 .TP
 .B amplitude
 The (real, positive) amplitude of the sinusoids.  The amplitude (and
@@ -156,7 +157,7 @@ large.
 .TP
 \fB\-s\fR \fIsort\fR
 Specify how the outputs are sorted, where \fIsort\fR is one of
-frequency/error/decay/amplitude.  (Only the first character of
+frequency/error/Q/decay/amplitude.  (Only the first character of
 \fIsort\fR matters.)  All sorts are in ascending order.  The default
 is to sort by frequency.
 .SH BUGS

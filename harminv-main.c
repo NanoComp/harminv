@@ -122,7 +122,7 @@ cmplx *amps = NULL;
 double *errs = NULL;
 
 enum {
-     SORT_FREQUENCY, SORT_DECAY, SORT_ERROR, SORT_AMPLITUDE 
+     SORT_FREQUENCY, SORT_DECAY, SORT_ERROR, SORT_AMPLITUDE, SORT_Q
 } sortby = SORT_FREQUENCY;
 
 int cmp(double a, double b)
@@ -144,6 +144,9 @@ int compar(const void *a, const void *b)
 	      return cmp(errs[*ia], errs[*ib]);
 	 case SORT_AMPLITUDE:
 	      return cmp(cabs(amps[*ia]), cabs(amps[*ib]));
+	 case SORT_Q:
+	      return cmp(harminv_get_freq(hd,*ia) / harminv_get_decay(hd,*ia),
+			 harminv_get_freq(hd,*ib) / harminv_get_decay(hd,*ib));
      }
      return 0;
 }
@@ -199,6 +202,9 @@ int main(int argc, char **argv)
 			    break;
 		       case 'a':
 			    sortby = SORT_AMPLITUDE;
+			    break;
+		       case 'q':
+			    sortby = SORT_Q;
 			    break;
 		       default:
 			    fprintf(stderr, "harminv: invalid sort type -s %c\n", tolower(optarg[0]));
