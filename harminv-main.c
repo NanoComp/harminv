@@ -228,7 +228,7 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 	       printf("# harminv: %d/%d modes are ok: "
 		      "errs <= %e and %e * %e\n, "
 		      "amps >= %g, %e * %g, "
-		      "Q >= %g\n", 
+		      "|Q| >= %g\n", 
 		      ok_d->num_ok, harminv_get_num_freqs(d),
 		      ok_d->err_thresh, ok_d->rel_err_thresh, ok_d->min_err,
 		      ok_d->amp_thresh, ok_d->rel_amp_thresh, ok_d->max_amp,
