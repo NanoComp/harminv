@@ -239,7 +239,7 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 	  return 0;
      }
 
-     f = harminv_get_freq(d, k);
+     f = fabs(harminv_get_freq(d, k));
      errk = harminv_get_freq_error(d, k);
      ampk = cabs(harminv_get_amplitude(d, k));
 
