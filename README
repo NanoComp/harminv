@@ -57,13 +57,13 @@ Essentially, FDM works by considering the time-series to be the
 autocorrelation function of a fictitious dynamical system, such that
 the problem of finding the frequencies and decay constants is
 re-expressed as the problem of finding the eigenvalues of the
-time-evolution operator of this system.  The key point is that, if you
-are only interested in frequencies within a known band-limited region,
-the matrix elements of this operator can be expressed purely in terms
-of Fourier transforms (or, really, z transforms) of your time-series.
-Then, one can simply diagonalize a small matrix (size proportional to
-the bandwidth and the number of frequencies) to find the desired
-result.
+complex-symmetric time-evolution operator of this system.  The key
+point is that, if you are only interested in frequencies within a
+known band-limited region, the matrix elements of this operator can be
+expressed purely in terms of Fourier transforms (or, really, z
+transforms) of your time-series.  Then, one can simply diagonalize a
+small matrix (size proportional to the bandwidth and the number of
+frequencies) to find the desired result.
 
 In general, for M data points and J frequencies, the time required is
 O(M J + J^3).  The main point of the algorithm is not so much speed,
