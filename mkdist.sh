@@ -13,3 +13,6 @@ sh autogen.sh
 make maintainer-clean
 ./configure --enable-maintainer-mode
 make dist
+
+rm ChangeLog
+cvs update ChangeLog
