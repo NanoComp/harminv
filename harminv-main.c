@@ -99,7 +99,19 @@ cmplx *read_input_data(FILE *f, int *n, int verbose)
      return data;
 }
 
+#ifdef INFINITY
+const double inf = INFINITY;
+#else
+const double inf = 1.0 / 0.0;
+#endif
+
+
 #define NF 100
+#define ERR_THRESH 0.1
+#define REL_ERR_THRESH inf
+#define AMP_THRESH 0.0
+#define REL_AMP_THRESH 0.0
+
 
 void usage(FILE *f)
 {
@@ -111,8 +123,15 @@ void usage(FILE *f)
 	     "         -T : specify periods instead of frequencies\n"
 	     "    -t <dt> : specify sampling interval dt [default: 1]\n"
 	     "    -f <nf> : specify initial spectral density [default: %d]\n"
-	     "  -s <sort> : sort by <sort> = freq/err/decay/amp [default: freq]\n",
-	     NF);
+	     "  -s <sort> : sort by <sort> = freq/err/decay/amp [default: freq]\n"
+	     "    -a <a> : discard amplitudes < max * <a> [default: %e]\n"
+	     "    -A <A> : discard amplitudes < <A> [default: %g]\n"
+	     "    -e <e> : discard relative errors > min * <e> [default: %e]\n"
+	     "    -E <E> : discard relative errors > <E> [default: %e]\n"
+,
+	     NF,
+	     AMP_THRESH, REL_AMP_THRESH,
+	     ERR_THRESH, REL_ERR_THRESH);
 }
 
 #define TWOPI 6.2831853071795864769252867665590057683943388
@@ -160,11 +179,15 @@ int main(int argc, char **argv)
      int verbose = 0;
      int specify_periods = 0;
      double dt = 1.0;
+     double err_thresh = ERR_THRESH;
+     double rel_err_thresh = REL_ERR_THRESH;
+     double amp_thresh = AMP_THRESH;
+     double rel_amp_thresh = REL_AMP_THRESH;
      int n, nf = NF;
      int iarg;
      cmplx *data;
 
-     while ((c = getopt(argc, argv, "hvVTt:f:s:")) != -1)
+     while ((c = getopt(argc, argv, "hvVTt:f:s:e:E:a:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -178,6 +201,18 @@ int main(int argc, char **argv)
 		   break;
 	      case 'T':
 		   specify_periods = 1;
+		   break;
+	      case 'a':
+		   rel_amp_thresh = atof(optarg);
+		   break;
+	      case 'A':
+		   amp_thresh = atof(optarg);
+		   break;
+	      case 'E':
+		   err_thresh = atof(optarg);
+		   break;
+	      case 'e':
+		   rel_err_thresh = atof(optarg);
 		   break;
 	      case 't':
 		   dt = atof(optarg);
@@ -237,6 +272,7 @@ int main(int argc, char **argv)
 
      for (iarg = optind; iarg < argc; ++iarg) {
 	  double fmin, fmax;
+	  double min_err = 1e20, max_amp = 0;
 	  int i, cur_nf, prev_nf;
 	  int *isort = NULL;
 
@@ -290,6 +326,26 @@ int main(int argc, char **argv)
 	  errs = harminv_compute_frequency_errors(hd);
 	  amps = harminv_compute_amplitudes(hd);
 
+	  if (harminv_get_num_freqs(hd)) min_err = errs[0];
+	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) {
+	       if (errs[i] < min_err) min_err = errs[i];
+	       if (cabs(amps[i]) > max_amp) max_amp = cabs(amps[i]);
+	  }
+	  if (verbose) {
+	       cur_nf = 0;
+	       for (i = 0; i < harminv_get_num_freqs(hd); ++i)
+		    if (errs[i] / fabs(dt) <= err_thresh
+			&& errs[i] <= min_err * rel_err_thresh
+			&& cabs(amps[i]) >= amp_thresh
+			&& cabs(amps[i]) >= rel_amp_thresh * max_amp)
+			 ++cur_nf;
+	       printf("# harminv number of frequencies with err < %e and "
+		      "< %e * %e, amp > %g and %e * %g: %d\n",
+		      err_thresh, rel_err_thresh, min_err / fabs(dt),
+		      amp_thresh, rel_amp_thresh, max_amp, cur_nf);
+	  }
+	       
+
 	  CHK_MALLOC(isort, int, harminv_get_num_freqs(hd));
 	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) 
 	       isort[i] = i;
@@ -298,9 +354,14 @@ int main(int argc, char **argv)
 	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) {
 	       double freq, decay;
 	       int j = isort[i];
+	       if (errs[j] / fabs(dt) > err_thresh
+		   || errs[j] > min_err * rel_err_thresh
+		   || cabs(amps[j]) < amp_thresh
+		   || cabs(amps[j]) < rel_amp_thresh * max_amp)
+		    continue;
 	       freq = harminv_get_freq(hd, j) / dt;
 	       decay = harminv_get_decay(hd, j) / fabs(dt);
-	       printf("%g, %g, %g, %g, %g, %g\n",
+	       printf("%g, %e, %g, %g, %g, %e\n",
 		      freq, decay, TWOPI * fabs(freq) / (2 * decay),
 		      cabs(amps[j]), carg(amps[j]), errs[j] / fabs(dt));
 	  }

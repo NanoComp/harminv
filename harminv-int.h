@@ -40,6 +40,7 @@ typedef harminv_complex cmplx; /* shortcut */
 #  define carg(c) arg(c)
 #  define cexp(c) exp(c)
 #  define csqrt(c) sqrt(c)
+#  define clog(c) log(c)
 #else
 #  ifndef HAVE_CARG  /* Cray doesn't have this for some reason */
 #    define carg(c) atan2(cimag(c), creal(c))

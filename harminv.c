@@ -81,6 +81,8 @@
 #endif /* ! CRAY */
 
 #define ZGEEV BLAS_FUNC(geev,GEEV)
+#define ZGGEVX BLAS_FUNC(ggevx,GGEVX)
+#define ZGGEV BLAS_FUNC(ggev,GGEV)
 #define ZGEMM BLAS_FUNC(gemm,GEMM)
 #define ZCOPY BLAS_FUNC(copy,COPY)
 #define ZAXPY BLAS_FUNC(axpy,AXPY)
@@ -106,6 +108,20 @@ extern "C" {
 
 extern void ZGEEV(FCHARP,FCHARP, int*, cmplx*,int*, cmplx*, cmplx*,int*,
 		  cmplx*,int*, cmplx*,int*, double*, int*);
+extern void ZGGEVX(FCHARP balanc, FCHARP jobvl, FCHARP jobvr, FCHARP sense, 
+		  int* n, cmplx* a, int* lda, cmplx* b, int* ldb,
+		  cmplx* alpha, cmplx* beta,
+		  cmplx* vl, int*, cmplx* vr, int*,
+		  int *ilo, int *ihi, double *lscale, double *rscale,
+		  double *abnrm, double *bbnrm,
+		  double *rconde, double *rcondv,
+		  cmplx *wrk, int *lwork, double *rwork, int *iwork,
+		  int *bwork, int *info);
+extern void ZGGEV(FCHARP jobvl, FCHARP jobvr, 
+		  int* n, cmplx* a, int* lda, cmplx* b, int* ldb,
+		  cmplx* alpha, cmplx* beta,
+		  cmplx* vl, int*, cmplx* vr, int*,
+		  cmplx *wrk, int *lwork, double *rwork, int *info);
 extern void ZGEMM(FCHARP,FCHARP, int*,int*,int*, cmplx*,
 		  cmplx*,int*, cmplx*,int*, cmplx*, cmplx*,int*);
 extern void ZCOPY(int*, cmplx*,int*, cmplx*,int*);
@@ -344,7 +360,11 @@ harminv_data harminv_data_create(int n,
      
      CHK_MALLOC(d->z, cmplx, nf);
      for (i = 0; i < nf; ++i)
-	  d->z[i] = cexp(-I * TWOPI * (fmin + i * ((fmax - fmin) / (nf - 1))));
+//	  d->z[i] = cexp(-I * TWOPI * (fmin + i * ((fmax - fmin) / (nf - 1))));
+{
+     d->z[i] = cexp(-I * TWOPI * (fmin + (i+0.5) * ((fmax - fmin) / (nf - 0))));
+//     printf("z[%d] = (%g,%g)\n", i+1, TWOPI * (fmin + (i+0.5) * ((fmax - fmin) / (nf - 0))), 0.0);
+}
 
      init_z(d, nf, d->z);
 
@@ -381,140 +401,99 @@ static cmplx symmetric_dot(int n, cmplx *x, cmplx *y)
 
 /**************************************************************************/
 
-/* Solve for the eigenvalues (v) and eigenvectors (rows of V) of the
-   complex-symmetric n x n matrix A.  The eigenvectors are normalized
-   to 1 according to the symmetric dot product (i.e. no complex
-   conjugation). */
-static void solve_eigenvects(int n, cmplx *A, cmplx *V, cmplx *v)
+/* how conservative do we need to be for this?  remember that |u| =
+   |alpha/beta| is the amount by which the mode changes in *one* time
+   step.  It is unreasonable to consider cases where the mode changes
+   by more than a factor of 10 in one time step.  */
+#define ALPHA_THRESHOLD 1e-1
+#define BETA_THRESHOLD 1e-1
+#define ABSOLUTE_THRESHOLD 0 /* fixme */
+
+static int ok_eigenvalue(cmplx alpha, cmplx beta)
 {
-     int lwork, info;
-     cmplx *work;
-     double *rwork;
-
-     /* Unfortunately, LAPACK doesn't have a special solver for the
-	complex-symmetric eigenproblem.  For now, just use the general
-	non-symmetric solver, and realize that the left eigenvectors
-	are the complex-conjugates of the right eigenvectors. */
-
-#if 0  /* LAPACK seems to be buggy here, returning ridiculous sizes at times */
-     cmplx wsize;
-     lwork = -1; /* compute optimal workspace size */
-     ZGEEV(F_("N"), F_("V"), &n, A, &n, v, V, &n, V, &n, &wsize, &lwork, rwork, &info);
-     if (info == 0)
-	  lwork = floor(creal(wsize) + 0.5);
-     else
-	  lwork = 2*n;
-     CHECK(lwork > 0, "zgeev is not returning a positive work size!");
-#else
-     lwork = 4*n; /* minimum is 2*n; we'll be generous. */
-#endif
-
-     CHK_MALLOC(rwork, double, 2*n);
-     CHK_MALLOC(work, cmplx, lwork);
-
-     ZGEEV(F_("N"), F_("V"), &n, A, &n, v, V, &n, V, &n, work, &lwork, rwork, &info);
-
-     free(work);
-     free(rwork);
-
-     CHECK(info >= 0, "invalid argument to ZGEEV");
-     CHECK(info <= 0, "failed convergence in ZGEEV");
-
-     /* Finally, we need to fix the normalization of the eigenvectors,
-        since LAPACK normalizes them under the ordinary dot product,
-        i.e. with complex conjugation.  (In principle, do we also need
-        to re-orthogonalize, for the case of degenerate eigenvalues?) */
-     {
-	  int i, one = 1;
-	  for (i = 0; i < n; ++i) {
-	       cmplx norm = 1.0 / csqrt(symmetric_dot(n, V+i*n, V+i*n));
-	       ZSCAL(&n, &norm, V+i*n, &one);
-	  }
-     }
+     double a = cabs(alpha), b = cabs(beta);
+     return (!isnan(a) && !isnan(b) &&
+	     a > b * ALPHA_THRESHOLD &&
+	     b > a * BETA_THRESHOLD &&
+	     (a > b ? a : b) > ABSOLUTE_THRESHOLD);
 }
 
-/**************************************************************************/
-
-/* how conservative do we need to be for this? */
-#define SINGULAR_THRESHOLD 1e-5
 
 /* Solve the eigenvalue problem U1 b = u U0 b, where b is the eigenvector
    and u is the eigenvalue.  u = exp(iwt - at) then contains both the
    frequency and the decay constant. */
 void harminv_solve_once(harminv_data d)
 {
-     int J, i, one=1;
+     int J = d->J, i, one=1;
      cmplx zone = 1.0, zzero = 0.0;
-     cmplx *V0, *v0, *H1, *V1; /* for eigensolutions of U0 and U1 */
-     double max_v0 = 0.0;
+     int J2 = J*J;
+     char jobvl = 'N', jobvr = 'V';
+     cmplx *A, *B, *VL, *VR, *alpha, *beta, *work;
+     double *rwork;
+     int lwork, info;
      
-     J = d->J;
-     CHK_MALLOC(V0, cmplx, J*J);
-     CHK_MALLOC(v0, cmplx, J);
-
-     /* Unfortunately, U0 is very likely to be singular, so we must
-	first extract the non-singular eigenvectors and only work in
-	that sub-space.  See the Wall & Neuhauser paper.  */
-
-     solve_eigenvects(J, d->U0, V0, v0);
+     CHK_MALLOC(A, cmplx, J2);
+     CHK_MALLOC(B, cmplx, J2);
+     CHK_MALLOC(VL, cmplx, J);
+     CHK_MALLOC(VR, cmplx, J2);
+     CHK_MALLOC(alpha, cmplx, J);
+     CHK_MALLOC(beta, cmplx, J);
+     lwork = 2*J2 + 2*J;
+     CHK_MALLOC(work, cmplx, lwork);
+     CHK_MALLOC(rwork, double, 8*J);
      
-     /* find maximum |eigenvalue| */
-     for (i = 0; i < J; ++i) {
-	  double v = cabs(v0[i]);
-	  if (v > max_v0)
-	       max_v0 = v;
-     }
-
-     /* we must remove the singular components of U0, those
-	that are less than some threshold times the maximum eigenvalue.
-        Also, we need to scale the eigenvectors by 1/sqrt(eigenval). */
-     d->nfreqs = J;
-     for (i = 0; i < J; ++i) {
-	  if (cabs(v0[i]) < SINGULAR_THRESHOLD * max_v0) {
-	       v0[i] = 0; /* tag as a "hole" */
-	       d->nfreqs -= 1;
-	  }
-	  else { /* not singular */
-	       cmplx s;
-	       int j;
-	       /* move the eigenvector to the first "hole" left by
-		  deleting singular eigenvalues: */
-	       for (j = 0; j < i && v0[j] != 0.0; ++j)
-		    ;
-	       if (j < i) {
-		    ZCOPY(&J, V0 + i*J, &one, V0 + j*J, &one);
-		    v0[j] = v0[i];
-		    v0[i] = 0; /* tag as a "hole" */
-	       }
-	       s = 1.0 / csqrt(v0[j]);
-	       ZSCAL(&J, &s, V0 + j*J, &one);
-	  }
-     }
-
+     ZCOPY(&J2, d->U1, &one, A, &one);
+     ZCOPY(&J2, d->U0, &one, B, &one);
+     
+     ZGGEV(&jobvl, &jobvr,
+	   &J, A, &J, B, &J,
+	   alpha, beta,
+	   VL, &one, VR, &J,
+	   work, &lwork, rwork, &info);
+     
+     CHECK(info >= 0, "invalid argument to ZGGEVX");
+     CHECK(info <= 0, "failed convergence in ZGGEVX");
+     
+     /* record non-singular eigenvalues in u, B, where the
+	eigenvalues are given by alpha/beta: */
+     d->nfreqs = 0;
+     for (i = 0; i < J; ++i)
+	  if (ok_eigenvalue(alpha[i], beta[i]))
+	       d->nfreqs++;
      CHK_MALLOC(d->B, cmplx, d->nfreqs * J);
      CHK_MALLOC(d->u, cmplx, d->nfreqs);
-     CHK_MALLOC(V1, cmplx, d->nfreqs * d->nfreqs);
-     CHK_MALLOC(H1, cmplx, d->nfreqs * d->nfreqs);
-
-     /* compute H1 = V0 * U1 * V0': */
-
-     /* B = V0 * U1: */
-     ZGEMM(F_("N"), F_("N"), &J, &d->nfreqs, &J,
-	   &zone, d->U1, &J, V0, &J, &zzero, d->B, &J);
-     /* H1 = B * transpose(V0) */
-     ZGEMM(F_("T"), F_("N"), &d->nfreqs, &d->nfreqs, &J,
-	   &zone, V0, &J, d->B, &J, &zzero, H1, &d->nfreqs);
-
-     /* Finally, we can find the eigenvalues and eigenvectors: */
-     solve_eigenvects(d->nfreqs, H1, V1, d->u);
-     /* B = V1 * V0: */
-     ZGEMM(F_("N"), F_("N"), &J, &d->nfreqs, &d->nfreqs,
-	   &zone, V0, &J, V1, &d->nfreqs, &zzero, d->B, &J);
-
-     free(H1);
-     free(V1);
-     free(v0);
-     free(V0);
+     d->nfreqs = 0;
+     for (i = 0; i < J; ++i) 
+	  if (ok_eigenvalue(alpha[i], beta[i])) {
+	       d->u[d->nfreqs] = alpha[i] / beta[i];
+	       ZCOPY(&J, VR + i*J, &one, d->B + d->nfreqs*J, &one);
+	       d->nfreqs++;
+	  }
+     
+     /* Finally, we need to fix the normalization of the
+	eigenvectors, since LAPACK normalizes them under the
+	ordinary dot product, i.e. with complex conjugation.  (In
+	principle, do we also need to re-orthogonalize, for the
+	case of degenerate eigenvalues?)
+	
+	Normalize so that: transpose(B) * U0 * B = 1 */
+     for (i = 0; i < d->nfreqs; ++i) {
+	  cmplx norm;
+	  ZGEMV(F_("T"), &J, &J,
+		&zone, d->U0, &J, d->B + i * J, &one,
+		&zzero, VL, &one);
+	  norm = 1.0 / csqrt(symmetric_dot(J, VL, d->B + i * J));
+	  ZSCAL(&J, &norm, d->B + i * J, &one);
+     }
+     
+     free(rwork);
+     free(work);
+     free(beta);
+     free(alpha);
+     free(VR);
+     free(VL);
+     free(B);
+     free(A);
 }
 
 /**************************************************************************/
@@ -547,15 +526,23 @@ void harminv_solve_again(harminv_data d)
 /* keep re-solving as long as spurious solutions are eliminated */
 void harminv_solve(harminv_data d)
 {
-     int prev_nf, cur_nf;
 
      harminv_solve_once(d);
-     cur_nf = harminv_get_num_freqs(d);
-     do {
-	  prev_nf = cur_nf;
-	  harminv_solve_again(d);
+
+     /* This is not in the papers, but seems to be a good idea:
+	plug the u's back in as z's for another pass, and repeat
+	as long as the number of eigenvalues decreases.   Effectively,
+        this gives us more basis functions where the modes are. */
+     {
+	  int prev_nf, cur_nf;
 	  cur_nf = harminv_get_num_freqs(d);
-     } while (cur_nf < prev_nf);
+	  do {
+	       prev_nf = cur_nf;
+	       harminv_solve_again(d);
+	       cur_nf = harminv_get_num_freqs(d);
+	  } while (cur_nf < prev_nf);
+	  /* FIXME: solve one more time for good measure? */
+     }
 }
 
 /**************************************************************************/
@@ -568,7 +555,7 @@ void harminv_solve(harminv_data d)
 double *harminv_compute_frequency_errors(harminv_data d)
 {
      int i, J2, one = 1;
-     cmplx *U2, *R, *r;
+     cmplx *U2, *U2b;
      double *freq_err;
 
      CHECK(d->B && d->u, "haven't computed eigensolutions yet");
@@ -578,38 +565,30 @@ double *harminv_compute_frequency_errors(harminv_data d)
      J2 = d->J*d->J;
      CHK_MALLOC(U2, cmplx, J2);
      generate_U(U2, NULL, 2, d->c, d->n, d->K, d->J, d->J, d->z, d->z);
-     CHK_MALLOC(R, cmplx, J2);
-     CHK_MALLOC(r, cmplx, d->J);
+     CHK_MALLOC(U2b, cmplx, d->J);
 
      /* For each eigenstate, compute an estimate of the error, roughly
 	as suggested in W&N, eq. (2.19). */
 
      for (i = 0; i < d->nfreqs; ++i) {
-	  cmplx u2m = -(d->u[i] * d->u[i]);
 	  cmplx zone = 1.0, zzero = 0.0;
 
-	  /* Compute R = (U2 - u^2 U0): */
-	  ZCOPY(&J2, U2, &one, R, &one);
-	  ZAXPY(&J2, &u2m, d->U0, &one, R, &one);
-
-	  /* Compute residual r = R*b.  ("T" transpose argument to zgemv
-	     is for row/column-major conversion.  In some sense it doesn't
-	     matter since R is symmetric, but this should be more efficient
-	     since it can then read R row-wise (contiguously).)*/
+	  /* compute U2b = U2 * B[i] */
 	  ZGEMV(F_("T"), &d->J, &d->J, 
-		&zone, R, &d->J, d->B + i * d->J, &one,
-		&zzero, r, &one);
+		&zone, U2, &d->J, d->B + i * d->J, &one,
+		&zzero, U2b, &one);
+	  
+	  /* ideally, B[i] should satisfy U2 B[i] = u^2 U0 B[i].
+	     since B U0 B = 1, then we can get a second estimate
+	     for u by sqrt(B[i] U2 B[i]), and from this we compute
+	     the relative error in the (complex) frequency. */
 
-	  /* it's not really clear how to get a sensible "error"
-	     estimate out of this number, or even what number exactly
-	     to compute, especially since u is exp(i*omega), not
-	     omega, and the operators are not Hermitian under a
-	     positive-definite dot product */
-	  freq_err[i] = 2 * cabs(symmetric_dot(d->J, d->B + i * d->J, r)) / cabs(u2m);
+	  freq_err[i] =
+	       cabs(clog(csqrt(symmetric_dot(d->J, d->B + i * d->J, U2b))
+			 / d->u[i])) / cabs(clog(d->u[i]));
      }
 
-     free(r);
-     free(R);
+     free(U2b);
      free(U2);
      return freq_err;
 }
