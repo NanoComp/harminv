@@ -153,6 +153,12 @@ Don't set it to something too large, however: the computation time
 scales as O(N * \fInf\fR + \fInf\fR^3), where N is the number of data
 points.  Also, there may be numerical problems if \fInf\fR is too
 large.
+.TP
+\fB\-s\fR \fIsort\fR
+Specify how the outputs are sorted, where \fIsort\fR is one of
+frequency/error/decay/amplitude.  (Only the first character of
+\fIsort\fR matters.)  All sorts are in ascending order.  The default
+is to sort by frequency.
 .SH BUGS
 Send bug reports to S. G. Johnson, stevenj@alum.mit.edu.
 .SH AUTHORS
