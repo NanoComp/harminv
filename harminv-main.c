@@ -35,7 +35,7 @@ int eat_whitespace(FILE *f, int echo_comments)
 	       newlines += c == '\n';
 	  } while (isspace(c));
 	  
-	  if (c == '#')  /* # begins comments that extend to the newline */
+	  if (c == '#') { /* # begins comments that extend to the newline */
 	       if (echo_comments)
 		    putc(c, stdout);
 	       do {
@@ -48,6 +48,7 @@ int eat_whitespace(FILE *f, int echo_comments)
 		    }
 		    newlines += c == '\n';
 	       } while (c != EOF && c != '\n');
+	  }
      } while (isspace (c));
      ungetc(c, f); /* put back the last character read */
      newlines -= c == '\n';
