@@ -553,7 +553,7 @@ void harminv_solve(harminv_data d)
 {
      int prev_nf, cur_nf;
 
-     harminv_solve(d);
+     harminv_solve_once(d);
      cur_nf = harminv_get_num_freqs(d);
      do {
 	  prev_nf = cur_nf;
