@@ -39,6 +39,9 @@ typedef complex<double> cmplx;
 #  define csqrt(c) sqrt(c)
 #else
 typedef double complex cmplx;
+#  ifndef HAVE_CARG  /* Cray doesn't have this for some reason */
+#    define carg(c) atan2(cimag(c), creal(c))
+#  endif
 #endif
 
 typedef struct harminv_data_struct {

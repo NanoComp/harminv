@@ -75,6 +75,10 @@ if test "$with_cxx" = "yes" -o "$have_c_complex" = "no"; then
 fi
 AC_SUBST(HARMINV_EXTRA_CFLAGS)
 
+if test "$have_c_complex" = "yes"; then
+	AC_CHECK_FUNCS(carg)
+fi
+
 ###########################################################################
 
 # Checks for header files.
