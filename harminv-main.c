@@ -273,7 +273,7 @@ int main(int argc, char **argv)
      ok_d.rel_amp_thresh = REL_AMP_THRESH;
      ok_d.Q_thresh = Q_THRESH;
 
-     while ((c = getopt(argc, argv, "hvVTwt:f:s:e:E:a:Q:")) != -1)
+     while ((c = getopt(argc, argv, "hvVTwt:f:s:e:E:a:A:Q:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
