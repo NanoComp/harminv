@@ -16,7 +16,7 @@
 .\"
 .TH HARMINV 1 "June 4, 2000" "harminv" "harminv"
 .SH NAME
-harminv \- extract oscillation frequencies from time-series data
+harminv \- extract mode frequencies from time-series data
 .SH SYNOPSIS
 .B harminv
 [\fIOPTION\fR]... [\fIfreq-min\fR-\fIfreq-max\fR]...
@@ -27,9 +27,11 @@ harminv \- extract oscillation frequencies from time-series data
 inversion:" given a time series consisting of a sum of sinusoids
 ("modes"), extract their frequencies and amplitudes.  It can also
 handle the case of exponentially-decaying sinusoids, in which case it
-extracts their decay rates as well.  It is able to achieve greater
-accuracy and robustness than Fourier-transform methods because of its
-assumption of a specific form for the input.
+extracts their decay rates as well.
+
+\fBharminv\fR is often able to achieve much greater accuracy and
+robustness than Fourier-transform methods, essentially because it
+assumes a specific form for the input.
 
 It uses a "low-storage filter-diagonalization" (LSFD) algorithm, as
 described in V. A. Mandelshtam and H. S. Taylor, "Harmonic inversion
@@ -42,7 +44,7 @@ frequency ranges to search, and outputs the modes that it extracts
 from the data.  (It preferentially finds modes in the frequency range
 you specify, but may sometimes find additional modes outside of that
 range.)  The data should correspond to equally-spaced time intervals,
-but need not be a power of two or anything like that.
+but there is no constraint on the number of points.
 
 Complex numbers in the input should be expressed in the format
 \fIRE\fR+\fIIM\fRi (no whitespace).  Otherwise, whitespace is ignored.
@@ -84,11 +86,12 @@ A conventional, dimensionless expression of the decay lifetime: Q = pi
 |\fIfrequency\fI| / \fIdecay\fR.  Q is the number of periods for the
 "energy" in the mode (the squared amplitude) to decay by exp(-2 pi).
 Equivalently, if you look at the power spectrum (|Fourier
-transform|^2), Q is the width of peak at half maximum as a fraction of
-the center frequency.
+transform|^2), 1/Q is the fractional width of the peak at half maximum.
 .TP
 .B amplitude
-The (real, positive) amplitude of the sinusoids.
+The (real, positive) amplitude of the sinusoids.  The amplitude (and
+phase) information generally seems to be less accurate than the
+frequency and decay constant.
 .TP
 .B phase
 The phase shift (in radians) of the sinusoids, as given by the formula
@@ -107,8 +110,14 @@ sampling interval \fIdt\fR (the time between consecutive inputs).
 \fIdt\fR is by default 1, unless you specify it with the
 .B -t
 .I dt
-option.  Note that the frequency (as defined above), is the usual
-1/period; it is not the angular frequency.
+option.
+
+In other words, pick some units (e.g. ms in the example above) and use
+them to express the time step.  Then, be consistent and use the
+inverse of those units (e.g. kHz = 1/ms) for frequency.
+
+Note that the frequency is the usual 1/period definition; it is not
+the angular frequency.
 .SH OPTIONS
 .TP
 .B -h
