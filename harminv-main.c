@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 	       fmin = 1/fmin;
 	       fmax = 1/fmax;
 	  }
-	  if (fmin > fmax) {
+	  if ((fmin > fmax && dt > 0) || (fmin < fmax && dt < 0)) {
 	       double dummy = fmin;
 	       fmin = fmax;
 	       fmax = dummy;
@@ -222,10 +222,10 @@ int main(int argc, char **argv)
 	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) {
 	       double freq, decay;
 	       freq = harminv_get_freq(hd, i) / dt;
-	       decay = harminv_get_decay(hd, i) / dt;
+	       decay = harminv_get_decay(hd, i) / fabs(dt);
 	       printf("%g, %g, %g, %g, %g, %g\n",
-		      freq, decay, TWOPI * freq / (2 * decay),
-		      errs[i] / dt, cabs(amps[i]), carg(amps[i]));
+		      freq, decay, TWOPI * fabs(freq) / (2 * decay),
+		      errs[i] / fabs(dt), cabs(amps[i]), carg(amps[i]));
 	  }
 
 	  free(amps);
