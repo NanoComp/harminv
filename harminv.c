@@ -400,10 +400,8 @@ static cmplx symmetric_dot(int n, cmplx *x, cmplx *y)
 
 /**************************************************************************/
 
-/* how conservative do we need to be for this?  remember that |u| =
-   |alpha/beta| is the amount by which the mode changes in *one* time
-   step.  It is unreasonable to consider cases where the mode changes
-   by more than a factor of 10 in one time step.  */
+/* FIXME: should we bother with thresholding and throwing out eigenvalues?
+   Should we look at the condition number instead of alpha/beta? */
 #define ALPHA_THRESHOLD 1e-1
 #define BETA_THRESHOLD 1e-1
 #define ABSOLUTE_THRESHOLD 0 /* fixme */

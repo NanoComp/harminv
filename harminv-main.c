@@ -33,7 +33,8 @@
 
 /* eat whitespace, including #... comments, from the file.  Returns the
    number of newlines read (so that a line count can be maintained).  If
-   echo_comments != 0, then echo #... comments to stdout. */
+   echo_comments != 0, then echo #... comments to stdout.  Commas count
+   as whitespace, so that we can read commad-delimited text. */
 static int eat_whitespace(FILE *f, int echo_comments)
 {
      int c, newlines = 0;
@@ -41,7 +42,7 @@ static int eat_whitespace(FILE *f, int echo_comments)
 	  do {
 	       c = getc(f);
 	       newlines += c == '\n';
-	  } while (isspace(c));
+	  } while (isspace(c) || c == ',');
 	  
 	  if (c == '#') { /* # begins comments that extend to the newline */
 	       if (echo_comments)
@@ -120,6 +121,7 @@ static void usage(FILE *f)
              "         -V : print version number and copyright\n"
              "         -v : verbose output\n"
 	     "         -T : specify periods instead of frequencies\n"
+	     "         -w : specify/output angular frequency, not frequency\n"
 	     "    -t <dt> : specify sampling interval dt [default: 1]\n"
 	     "    -f <nf> : specify initial spectral density [default: %d]\n"
 	     "  -s <sort> : sort by <sort> = freq/err/decay/amp [default: freq]\n"
@@ -225,6 +227,7 @@ int main(int argc, char **argv)
      extern char *optarg;
      extern int optind;
      int specify_periods = 0;
+     int specify_omega = 0;
      double dt = 1.0;
      mode_ok_data ok_d;
      int n, nf = NF;
@@ -236,7 +239,7 @@ int main(int argc, char **argv)
      ok_d.amp_thresh = AMP_THRESH;
      ok_d.rel_amp_thresh = REL_AMP_THRESH;
 
-     while ((c = getopt(argc, argv, "hvVTt:f:s:e:E:a:")) != -1)
+     while ((c = getopt(argc, argv, "hvVTwt:f:s:e:E:a:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -250,6 +253,9 @@ int main(int argc, char **argv)
 		   break;
 	      case 'T':
 		   specify_periods = 1;
+		   break;
+	      case 'w':
+		   specify_omega = 1;
 		   break;
 	      case 'a':
 		   ok_d.rel_amp_thresh = atof(optarg);
@@ -340,6 +346,10 @@ int main(int argc, char **argv)
 	       fmin = 1/fmin;
 	       fmax = 1/fmax;
 	  }
+	  if (specify_omega) {
+	       fmin /= TWOPI;
+	       fmax /= TWOPI;
+	  }
 	  if ((fmin > fmax && dt > 0) || (fmin < fmax && dt < 0)) {
 	       double dummy = fmin;
 	       fmin = fmax;
@@ -380,7 +390,8 @@ int main(int argc, char **argv)
 	       amp = harminv_get_amplitude(hd, j);
 	       err = harminv_get_frequency_error(hd, j);
 	       printf("%g, %e, %g, %g, %g, %e\n",
-		      freq, decay, TWOPI * fabs(freq) / (2 * decay),
+		      freq * (specify_omega ? TWOPI : 1.0), decay,
+		      TWOPI * fabs(freq) / (2 * decay),
 		      cabs(amp), carg(amp), err);
 	  }
 
