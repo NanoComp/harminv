@@ -104,15 +104,16 @@ actual sampling interval is dt, then you should rescale your
 frequencies by multiplying them by dt.
 
 A good default for nf is (fmax - fmin) * n * 1.1, corresponding to a
-spectral "density" of 1.1.  That is, this uses a number of initial
-basis functions corresponding to the Fourier resolution of 1/n.  This
-does *not* determine the frequency resolution of the outputs, which
-can be much greater than the Fourier resolution.  It sets an upper
-bound on the number of modes to search for, and in some sense is the
-density with which the bandwidth is initially "searched" for modes.
-Spectral densities much larger than 1 are not recommended, as they
-lead to large and singular matrices and unstable results.  Note also
-that the computation time goes as O(n * nf) + O(nf^3).
+spectral "density" of 1.1 (see also the -d option of the command-line
+tool).  That is, this uses a number of initial basis functions
+corresponding to the Fourier resolution of 1/n.  This does *not*
+determine the frequency resolution of the outputs, which can be much
+greater than the Fourier resolution.  It sets an upper bound on the
+number of modes to search for, and in some sense is the density with
+which the bandwidth is initially "searched" for modes.  Spectral
+densities much larger than 1 are not recommended, as they lead to
+large and singular matrices and unstable results.  Note also that the
+computation time goes as O(n * nf) + O(nf^3).
 
 Then, you solve for the frequencies by calling:
 
