@@ -64,7 +64,20 @@
 
 /**************************************************************************/
 
-#define F77_FUNC(x,X) x##_   /* define for Linux, for now */
+/* replace the following with an autoconf test when autoconf 2.5 is out: */
+#if defined(CRAY) || defined(_UNICOS) || defined(_CRAYMPP)
+#define F77_FUNC(x,X) X /* all upper-case on the Cray */
+
+#elif defined(IBM6000) || defined(_AIX)
+#define F77_FUNC(x,X) x  /* all lower-case on RS/6000 */
+
+#elif defined(__hpux)
+#define F77_FUNC(x,X) x  /* all lower-case on HP-UX */
+
+#else
+#define F77_FUNC(x,X) x##_  /* use all lower-case with underscore by default */
+
+#endif
 
 #define ZGEEV F77_FUNC(zgeev,ZGEEV)
 #define ZGEMM F77_FUNC(zgemm,ZGEMM)
