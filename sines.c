@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 		    cexp(I * (sines[is].phase - TWOPI*sines[is].freq * i*dt)
 			 - sines[is].decay * i*dt);
 	  output += noise * (rand() * 2.0/RAND_MAX - 1);
-	  printf("%0.17e+%0.17ei\n", creal(output), cimag(output));
+	  printf("%0.17e%+0.17ei\n", creal(output), cimag(output));
      }
 
      free(sines);

@@ -64,6 +64,22 @@ static int eat_whitespace(FILE *f, int echo_comments)
      return newlines;
 }
 
+static int eat_plus(FILE *f)
+{
+     int c = getc(f);
+     if (c != EOF && c != '+')
+	  ungetc(c, f);
+     return (c == '+' || c == '-');
+}
+
+static int eat_i(FILE *f)
+{
+     int c = getc(f);
+     if (c != EOF && tolower(c) != 'i')
+	  ungetc(c, f);
+     return (tolower(c) == 'i');
+}
+
 static cmplx *read_input_data(FILE *f, int *n, int verbose)
 {
     cmplx *data = NULL;
@@ -75,7 +91,13 @@ static cmplx *read_input_data(FILE *f, int *n, int verbose)
 	  int nread;
 
 	  line += eat_whitespace(f, verbose);
-	  nread = fscanf(f, "%lg+%lgi", &re, &im);
+	  nread = fscanf(f, "%lg", &re);
+	  if (nread == 1 && eat_plus(f)) {
+	       nread = fscanf(f, "%lg", &im);
+	       if (nread == 1) nread = eat_i(f);
+	  }
+	  else
+	       im = 0.0;
 	  if (nread != EOF) {
 	       if (nread < 1) {
 		    fprintf(stderr, "harminv: invalid input on line %d.\n",
@@ -89,9 +111,7 @@ static cmplx *read_input_data(FILE *f, int *n, int verbose)
 		    data = (cmplx*) realloc(data, sizeof(cmplx) * n_alloc);
 		    CHECK(data, "out of memory");
 	       }
-	       data[*n] = re;
-	       if (nread == 2)
-		    data[*n] += I*im;
+	       data[*n] = re + I*im;
 	       ++*n;
 	  }
      } while (!feof(stdin));
