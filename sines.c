@@ -48,6 +48,7 @@ void usage(FILE *f)
 	     "         -T : specify periods instead of frequencies\n"
 	     "         -r : random amplitudes\n"
 	     "     -N <a> : add white noise with amplitude <a>\n"
+	     "     -s <s> : use seed <s> for random #s (default <s>=time)\n"
 	     "     -n <n> : output <n> points (default %d * max period)\n"
 	     "    -t <dt> : time step <dt> (default 1.0)\n",
 	     NPERIODS);
@@ -76,7 +77,7 @@ int main(int argc, char **argv)
 
      srand(time(NULL));
 
-     while ((c = getopt(argc, argv, "hVvTrn:t:N:")) != -1)
+     while ((c = getopt(argc, argv, "hVvTrn:t:N:s:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -97,6 +98,9 @@ int main(int argc, char **argv)
 		   break;
 	      case 'N':
 		   noise = atof(optarg);
+		   break;
+	      case 's':
+		   srand(atoi(optarg));
 		   break;
 	      case 'n':
 		   n = atoi(optarg);
