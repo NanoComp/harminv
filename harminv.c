@@ -87,6 +87,9 @@
 #define ZGEMV BLAS_FUNC(gemv,GEMV)
 #define ZSCAL BLAS_FUNC(scal,SCAL)
 
+#define HARMINV_DNRM2 F77_FUNC_(harminv_dnrm2, HARMINV_DNRM2)
+#define HARMINV_ZDOTU F77_FUNC_(harminv_zdotu, HARMINV_ZDOTU)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -111,6 +114,8 @@ extern void ZAXPY(int*, cmplx*, cmplx*,int*, cmplx*,int*);
 extern void ZGEMV(FCHARP, int*,int*, cmplx*, cmplx*,int*, cmplx*,int*,
 		  cmplx*, cmplx*,int*);
 extern void ZSCAL(int*, cmplx*, cmplx*,int*);
+extern void HARMINV_DNRM2(double *, int *, double *, int *);
+extern void HARMINV_ZDOTU(cmplx *, int *, cmplx *, int *, cmplx *, int *);
 
 #ifdef __cplusplus
 } /* extern "C" */
@@ -373,12 +378,23 @@ void harminv_data_destroy(harminv_data d)
    length n.  If they are column-vectors, this is: transpose(x) * y. */
 static cmplx symmetric_dot(int n, cmplx *x, cmplx *y)
 {
-     cmplx dot = 0;
-     int i;
-     for (i = 0; i < n; ++i)
-	  dot += x[i] * y[i];
+     cmplx dot;
+     int stride = 1;
+     HARMINV_ZDOTU(&dot, &n, x, &stride, y, &stride);
      return dot;
 }
+
+/* Complex norm: sqrt(x' * x) */
+static double norm(int n, cmplx *x)
+{
+     double nrm;
+     int stride = 2;
+     n *= 2;
+     HARMINV_DNRM2(&nrm, &n, (double *) x, &stride);
+     return nrm;
+}
+
+/**************************************************************************/
 
 /* Solve for the eigenvalues (v) and eigenvectors (rows of V) of the
    complex-symmetric n x n matrix A.  The eigenvectors are normalized
@@ -580,10 +596,8 @@ double *harminv_compute_frequency_errors(harminv_data d)
      CHK_MALLOC(R, cmplx, J2);
      CHK_MALLOC(r, cmplx, d->J);
 
-     /* For each eigenstate, compute an estimate of the error, as
-	suggested in W&N, eq. (2.19).  (Note that this equation is
-	properly normalized, so that the error / u^2 should be
-	dimensionless.) */
+     /* For each eigenstate, compute an estimate of the error, roughly
+	as suggested in W&N, eq. (2.19). */
 
      for (i = 0; i < d->nfreqs; ++i) {
 	  cmplx u2m = -(d->u[i] * d->u[i]);
@@ -601,8 +615,12 @@ double *harminv_compute_frequency_errors(harminv_data d)
 		&zone, R, &d->J, d->B + i * d->J, &one,
 		&zzero, r, &one);
 
-	  freq_err[i] =
-	       2 * cabs(symmetric_dot(d->J, d->B + i * d->J, r)) / cabs(u2m);
+	  /* it's not really clear how to get a sensible "error"
+	     estimate out of this number, or even what number exactly
+	     to compute, especially since u is exp(i*omega), not
+	     omega, and the operators are not Hermitian under a
+	     positive-definite dot product */
+	  freq_err[i] = 2 * cabs(symmetric_dot(d->J, d->B + i * d->J, r)) / cabs(u2m);
      }
 
      free(r);
@@ -642,12 +660,12 @@ cmplx *harminv_compute_amplitudes(harminv_data d)
 
 /**************************************************************************/
 
-int harminv_get_num_freqs(harminv_data d)
+int harminv_get_num_freqs(const harminv_data d)
 {
      return d->nfreqs;
 }
 
-double harminv_get_freq(harminv_data d, int k)
+double harminv_get_freq(const harminv_data d, int k)
 {
      CHECK(d->u, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
@@ -655,7 +673,7 @@ double harminv_get_freq(harminv_data d, int k)
      return(-carg(d->u[k]) / TWOPI);
 }
 
-double harminv_get_decay(harminv_data d, int k)
+double harminv_get_decay(const harminv_data d, int k)
 {
      CHECK(d->u, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,

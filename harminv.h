@@ -46,9 +46,9 @@ extern void harminv_solve_once(harminv_data d);
 extern void harminv_solve_again(harminv_data d);
 extern void harminv_solve(harminv_data d);
 
-extern int harminv_get_num_freqs(harminv_data d);
-extern double harminv_get_freq(harminv_data d, int k);
-extern double harminv_get_decay(harminv_data d, int k);
+extern int harminv_get_num_freqs(const harminv_data d);
+extern double harminv_get_freq(const harminv_data d, int k);
+extern double harminv_get_decay(const harminv_data d, int k);
 
 extern double *harminv_compute_frequency_errors(harminv_data d);
 extern harminv_complex *harminv_compute_amplitudes(harminv_data d);

@@ -110,11 +110,44 @@ void usage(FILE *f)
              "         -v : verbose output\n"
 	     "         -T : specify periods instead of frequencies\n"
 	     "    -t <dt> : specify sampling interval dt [default: 1]\n"
-	     "    -f <nf> : specify initial spectral density [default: %d]\n",
+	     "    -f <nf> : specify initial spectral density [default: %d]\n"
+	     "  -s <sort> : sort by <sort> = freq/err/decay/amp [default: freq]\n",
 	     NF);
 }
 
 #define TWOPI 6.2831853071795864769252867665590057683943388
+
+harminv_data hd;
+cmplx *amps = NULL;
+double *errs = NULL;
+
+enum {
+     SORT_FREQUENCY, SORT_DECAY, SORT_ERROR, SORT_AMPLITUDE 
+} sortby = SORT_FREQUENCY;
+
+int cmp(double a, double b)
+{
+     return a > b ? 1 : (a < b ? -1 : 0);
+}
+
+int compar(const void *a, const void *b)
+{
+     const int *ia = (const int *) a;
+     const int *ib = (const int *) b;
+
+     switch (sortby) {
+	 case SORT_FREQUENCY:
+	      return cmp(harminv_get_freq(hd,*ia), harminv_get_freq(hd,*ib));
+	 case SORT_DECAY:
+	      return cmp(harminv_get_decay(hd,*ia), harminv_get_decay(hd,*ib));
+	 case SORT_ERROR:
+	      return cmp(errs[*ia], errs[*ib]);
+	 case SORT_AMPLITUDE:
+	      return cmp(cabs(amps[*ia]), cabs(amps[*ib]));
+     }
+     return 0;
+}
+
 
 int main(int argc, char **argv)
 {
@@ -128,7 +161,7 @@ int main(int argc, char **argv)
      int iarg;
      cmplx *data;
 
-     while ((c = getopt(argc, argv, "hvVTt:f:")) != -1)
+     while ((c = getopt(argc, argv, "hvVTt:f:s:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -151,6 +184,26 @@ int main(int argc, char **argv)
 		   if (nf < 2) {
 			fprintf(stderr, "harminv: -f argument must be > 1\n");
 			return EXIT_FAILURE;
+		   }
+		   break;
+	      case 's':
+		   switch (tolower(optarg[0])) {
+		       case 'f':
+			    sortby = SORT_FREQUENCY;
+			    break;
+		       case 'd':
+			    sortby = SORT_DECAY;
+			    break;
+		       case 'e':
+			    sortby = SORT_ERROR;
+			    break;
+		       case 'a':
+			    sortby = SORT_AMPLITUDE;
+			    break;
+		       default:
+			    fprintf(stderr, "harminv: invalid sort type -s %c\n", tolower(optarg[0]));
+			    usage(stderr);
+			    return EXIT_FAILURE;
 		   }
 		   break;
 	      default:
@@ -179,9 +232,7 @@ int main(int argc, char **argv)
      for (iarg = optind; iarg < argc; ++iarg) {
 	  double fmin, fmax;
 	  int i, cur_nf, prev_nf;
-	  harminv_data hd;
-	  cmplx *amps = NULL;
-	  double *errs = NULL;
+	  int *isort = NULL;
 
 	  if (sscanf(argv[iarg], "%lf-%lf", &fmin, &fmax) != 2) {
 	       fprintf(stderr, "harminv: invalid argument \"%s\"\n",
@@ -232,14 +283,20 @@ int main(int argc, char **argv)
 
 	  errs = harminv_compute_frequency_errors(hd);
 	  amps = harminv_compute_amplitudes(hd);
+
+	  CHK_MALLOC(isort, int, harminv_get_num_freqs(hd));
+	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) 
+	       isort[i] = i;
+	  qsort(isort, harminv_get_num_freqs(hd), sizeof(int), compar);
 	  
 	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) {
 	       double freq, decay;
-	       freq = harminv_get_freq(hd, i) / dt;
-	       decay = harminv_get_decay(hd, i) / fabs(dt);
+	       int j = isort[i];
+	       freq = harminv_get_freq(hd, j) / dt;
+	       decay = harminv_get_decay(hd, j) / fabs(dt);
 	       printf("%g, %g, %g, %g, %g, %g\n",
 		      freq, decay, TWOPI * fabs(freq) / (2 * decay),
-		      cabs(amps[i]), carg(amps[i]), errs[i] / fabs(dt));
+		      cabs(amps[j]), carg(amps[j]), errs[j] / fabs(dt));
 	  }
 
 	  free(amps);
