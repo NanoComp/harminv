@@ -73,6 +73,10 @@
 #define ZGEMV F77_FUNC(zgemv,ZGEMV)
 #define ZSCAL F77_FUNC(zscal,ZSCAL)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void ZGEEV(char*,char*, int*, cmplx*,int*, cmplx*, cmplx*,int*,
 		  cmplx*,int*, cmplx*,int*, double*, int*);
 extern void ZGEMM(char*,char*, int*,int*,int*, cmplx*,
@@ -82,6 +86,10 @@ extern void ZAXPY(int*, cmplx*, cmplx*,int*, cmplx*,int*);
 extern void ZGEMV(char*, int*,int*, cmplx*, cmplx*,int*, cmplx*,int*,
 		  cmplx*, cmplx*,int*);
 extern void ZSCAL(int*, cmplx*, cmplx*,int*);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 /**************************************************************************/
 
@@ -298,7 +306,7 @@ harminv_data harminv_data_create(int n,
 
      if (!nf) {
 	  /* use "reasonable choice" suggested by M&T: */
-	  nf = n*(fmax-fmin)/2;
+	  nf = (int) (n*(fmax-fmin)/2 + 0.5);
 	  if (nf < 2)
 	       nf = 2;
      }
@@ -552,8 +560,8 @@ double *harminv_compute_frequency_errors(harminv_data d)
 		&zone, R, &d->J, d->B + i * d->J, &one,
 		&zzero, r, &one);
 
-	  freq_err[i] = symmetric_dot(d->J, d->B + i * d->J, r);
-	  freq_err[i] = 2 * cabs(freq_err[i]) / cabs(u2m);
+	  freq_err[i] =
+	       2 * cabs(symmetric_dot(d->J, d->B + i * d->J, r)) / cabs(u2m);
      }
 
      free(r);

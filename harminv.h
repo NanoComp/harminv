@@ -19,14 +19,27 @@
 #define HARMINV_H
 
 /* Require C99 complex number support; this is just too painful
-   without it. */
+   without it.  Alternatively, use the complex<double> STL class in
+   C++. */
+
 #include <complex.h>
 
 #include "config.h"
 
 /**************************************************************************/
 
+#ifdef __cplusplus
+typedef complex<double> cmplx;
+#  define I cmplx(0,1)
+#  define creal(c) real(c)
+#  define cimag(c) imag(c)
+#  define cabs(c) abs(c)
+#  define carg(c) arg(c)
+#  define cexp(c) exp(c)
+#  define csqrt(c) sqrt(c)
+#else
 typedef double complex cmplx;
+#endif
 
 typedef struct harminv_data_struct {
      const cmplx *c;

@@ -17,11 +17,19 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <math.h>
 
 #include "harminv.h"
 #include "check.h"
 #include "copyright.h"
+
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+#ifdef HAVE_GETOPT_H
+#  include <getopt.h>
+#endif
 
 /* eat whitespace, including #... comments, from the file.  Returns the
    number of newlines read (so that a line count can be maintained).  If
