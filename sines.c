@@ -166,7 +166,7 @@ int main(int argc, char **argv)
      }
 
      if (n == 0)
-	  n = (int) (max_period / fabs(dt) + 0.5);
+	  n = (int) (max_period / fabs(dt) + 0.5) * NPERIODS;
 
      for (i = 0; i < n; ++i) {
 	  cmplx output = 0;
