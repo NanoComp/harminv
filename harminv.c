@@ -777,7 +777,7 @@ cmplx harminv_get_omega(harminv_data d, int k)
      CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_freq");
-     return(-clog(d->u[k]));
+     return(I * clog(d->u[k]));
 }
 
 cmplx harminv_get_amplitude(harminv_data d, int k)
