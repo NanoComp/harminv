@@ -126,8 +126,8 @@ const double inf = INFINITY;
 const double inf = 1.0 / 0.0;
 #endif
 
-
-#define NF 100
+#define DENSITY 1.1
+#define NFMIN 2
 #define ERR_THRESH 0.1
 #define REL_ERR_THRESH inf
 #define AMP_THRESH 0.0
@@ -144,7 +144,8 @@ static void usage(FILE *f)
 	     "         -T : specify periods instead of frequencies\n"
 	     "         -w : specify/output angular frequency, not frequency\n"
 	     "    -t <dt> : specify sampling interval dt [default: 1]\n"
-	     "    -f <nf> : specify initial spectral density [default: %d]\n"
+	     "     -d <d> : specify spectral density [default: %g]\n"
+	     "    -f <nf> : use at least <nf> basis functions [default: %d]\n"
 	     "  -s <sort> : sort by <sort> = freq/err/decay/amp [default: freq]\n"
 	     "        -F : discard frequencies outside of specified range\n"
 	     "    -a <a> : discard amplitudes < max * <a> [default: %e]\n"
@@ -152,7 +153,8 @@ static void usage(FILE *f)
 	     "    -e <e> : discard relative errors > min * <e> [default: %e]\n"
 	     "    -E <E> : discard relative errors > <E> [default: %e]\n"
 	     "    -Q <Q> : discard Q > <E> [default: %g]\n",
-	     NF,
+	     DENSITY,
+	     NFMIN,
 	     AMP_THRESH, REL_AMP_THRESH,
 	     ERR_THRESH, REL_ERR_THRESH,
 	     Q_THRESH);
@@ -268,7 +270,8 @@ int main(int argc, char **argv)
      int specify_omega = 0;
      double dt = 1.0;
      mode_ok_data ok_d;
-     int n, nf = NF;
+     int n, nf, nfmin = NFMIN;
+     double density = DENSITY;
      int iarg;
      cmplx *data;
 
@@ -279,7 +282,7 @@ int main(int argc, char **argv)
      ok_d.rel_amp_thresh = REL_AMP_THRESH;
      ok_d.Q_thresh = Q_THRESH;
 
-     while ((c = getopt(argc, argv, "hvVTFwt:f:s:e:E:a:A:Q:")) != -1)
+     while ((c = getopt(argc, argv, "hvVTFwt:d:f:s:e:E:a:A:Q:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -319,9 +322,12 @@ int main(int argc, char **argv)
 		   dt = atof(optarg);
 		   break;
 	      case 'f':
-		   nf = atoi(optarg);
-		   if (nf < 2) {
-			fprintf(stderr, "harminv: -f argument must be > 1\n");
+		   nfmin = atoi(optarg);
+		   break;
+	      case 'd':
+		   density = atof(optarg);
+		   if (density < 0) {
+			fprintf(stderr, "harminv: -d argument must be >= 0\n");
 			return EXIT_FAILURE;
 		   }
 		   break;
@@ -357,7 +363,10 @@ int main(int argc, char **argv)
 	  fprintf(stderr, "harminv: missing required frequency range(s)\n");
           usage(stderr);
           return EXIT_FAILURE;
-     }	  
+     }
+     
+     /* harminv requires nf > 1 */
+     if (nfmin < 2) nfmin = 2;
 
      data = read_input_data(stdin, &n, verbose);
 
@@ -406,6 +415,17 @@ int main(int argc, char **argv)
 
 	  ok_d.fmin = fmin*dt;
 	  ok_d.fmax = fmax*dt;
+
+	  nf = (fmax - fmin) * dt * n * density;
+	  if (nf < nfmin) nf = nfmin;
+	  if (verbose)
+	       printf("# using %d spectral basis functions\n", nf);
+	  if (nf > 400)
+	       fprintf(stderr,
+"# WARNING: large number (%d) of spectral basis functions \n"
+"#          for frequencies %g-%g with %d points and density -d %g\n"
+"#          -- you might want to narrow the bandwidth or use a lower -d\n",
+		       nf, fmin, fmax, n, density);
 
 	  hd = harminv_data_create(n, data, fmin*dt, fmax*dt, nf);
 	  

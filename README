@@ -96,12 +96,23 @@ harminv_data data structure:
 signal is a pointer to an array of n complex numbers.  In C++,
 harminv_complex is std::complex<double>.  In C, harminv_complex is a
 double[2] with the real parts in signal[i][0] and the imaginary parts
-in signal[i][1].  (For a real signal, set the imaginar parts to zero.)
-fmin and fmax are the frequency range to search, and nf is an upper
-bound on the number of frequencies in that range (100 is typically a
-safe value).  Frequencies are in units corresponding to a sampling
-interval of 1 time unit--if your actual sampling interval is dt, then
-you should rescale your frequencies by multiplying them by dt.
+in signal[i][1].  (For a real signal, set the imaginary parts to
+zero.)  fmin and fmax are the frequency range to search, and nf is the
+number of spectral basis functions (see below).  Frequencies are in
+units corresponding to a sampling interval of 1 time unit--if your
+actual sampling interval is dt, then you should rescale your
+frequencies by multiplying them by dt.
+
+A good default for nf is (fmax - fmin) * n * 1.1, corresponding to a
+spectral "density" of 1.1.  That is, this uses a number of initial
+basis functions corresponding to the Fourier resolution of 1/n.  This
+does *not* determine the frequency resolution of the outputs, which
+can be much greater than the Fourier resolution.  It sets an upper
+bound on the number of modes to search for, and in some sense is the
+density with which the bandwidth is initially "searched" for modes.
+Spectral densities much larger than 1 are not recommended, as they
+lead to large and singular matrices and unstable results.  Note also
+that the computation time goes as O(n * nf) + O(nf^3).
 
 Then, you solve for the frequencies by calling:
 

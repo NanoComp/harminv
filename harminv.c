@@ -118,7 +118,7 @@ extern "C" {
 #  define FCHARP _fcd
 #  define F_(s) _cptofcd(s,1)  /* second argument is the string length */
 #else  /* ! CRAY */
-#  define FCHARP char*
+#  define FCHARP const char*
 #  define F_(s) (s)
 #endif
 
@@ -189,14 +189,16 @@ static void generate_U(cmplx *U, cmplx *U1,
 		       const cmplx *c, int n,
 		       int K,
 		       int J, int J2, const cmplx *z, const cmplx *z2,
-		       cmplx **G0, cmplx **G0_M, cmplx **D0)
+		       cmplxl **G0, cmplxl **G0_M, cmplxl **D0)
 {
      int M = K - 1;
      int i, j, m;
      /* temp. arrays for 1/z, z^(-m), z^(-M), the G function of C&G,
 	and the diagonal elements D[i] = U(z[i],z[i]): */
-     cmplx *z_inv, *z_m, *z_M, *G, *G_M, *D; 
-     cmplx *z2_inv, *z2_m, *z2_M, *G2, *G2_M; 
+     cmplx *z_inv, *z_m, *z_M;
+     cmplxl *G, *G_M, *D; 
+     cmplx *z2_inv, *z2_m, *z2_M;
+     cmplxl *G2, *G2_M; 
 
      CHECK(U && c && z && z2, "invalid arguments to generate_U");
      CHECK(n >= 2*K + p, "too few coefficients in generate_U");
@@ -223,9 +225,9 @@ static void generate_U(cmplx *U, cmplx *U1,
 	  D = *D0;
      }
      else {
-	  CHK_MALLOC(G, cmplx, J);
-	  CHK_MALLOC(G_M, cmplx, J);
-	  CHK_MALLOC(D, cmplx, J);
+	  CHK_MALLOC(G, cmplxl, J);
+	  CHK_MALLOC(G_M, cmplxl, J);
+	  CHK_MALLOC(D, cmplxl, J);
 	  for (i = 0; i < J; ++i) {
 	       D[i] = G[i] = G_M[i] = 0;
 	  }
@@ -239,8 +241,8 @@ static void generate_U(cmplx *U, cmplx *U1,
 	  CHK_MALLOC(z2_inv, cmplx, J2);
 	  CHK_MALLOC(z2_m, cmplx, J2);
 	  CHK_MALLOC(z2_M, cmplx, J2);
-	  CHK_MALLOC(G2, cmplx, J2);
-	  CHK_MALLOC(G2_M, cmplx, J2);
+	  CHK_MALLOC(G2, cmplxl, J2);
+	  CHK_MALLOC(G2_M, cmplxl, J2);
 	  for (i = 0; i < J2; ++i) {
 	       z2_inv[i] = 1.0 / z2[i];
 	       z2_m[i] = 1;
@@ -249,7 +251,8 @@ static void generate_U(cmplx *U, cmplx *U1,
 	  }
      }
      else {
-	  z2_inv = z2_m = z2_M = G2 = G2_M = NULL;
+	  z2_inv = z2_m = z2_M = NULL;
+	  G2 = G2_M = NULL;
      }
 
      /* First, loop over the signal array (c), building up the
@@ -267,6 +270,7 @@ static void generate_U(cmplx *U, cmplx *U1,
 		    G[i] += x1;
 		    G_M[i] += x2;
 		    D[i] += x1 * d + x2 * d2 * z_M[i] * z_inv[i];
+		    /* z_m[i] = cpow_i(z_inv[i], m + 1); */
 		    z_m[i] *= z_inv[i];
 	       }
 	  }
@@ -274,6 +278,7 @@ static void generate_U(cmplx *U, cmplx *U1,
 	       for (i = 0; i < J2; ++i) {
 		    G2[i] += z2_m[i] * c1;
 		    G2_M[i] += z2_m[i] * c2;
+		    /* z2_m[i] = cpow_i(z2_inv[i], m + 1); */
 		    z2_m[i] *= z2_inv[i];
 	       }
      }
@@ -380,17 +385,10 @@ harminv_data harminv_data_create(int n,
      int i;
      harminv_data d;
 
-     CHECK(nf == 0 || nf > 1, "# frequencies must be zero or > 1");
+     CHECK(nf > 1, "# frequencies must > 1");
      CHECK(n > 0, "invalid number of data points");
      CHECK(signal, "invalid NULL signal array");
      CHECK(fmin < fmax, "should have fmin < fmax");
-
-     if (!nf) {
-	  /* use "reasonable choice" suggested by M&T: */
-	  nf = (int) (n*(fmax-fmin)/2 + 0.5);
-	  if (nf < 2)
-	       nf = 2;
-     }
 
      CHK_MALLOC(d, struct harminv_data_struct, 1);
      d->c = signal;
@@ -399,8 +397,8 @@ harminv_data harminv_data_create(int n,
      d->fmin = fmin;
      d->fmax = fmax;
      d->nfreqs = -1;  /* we haven't computed eigen-solutions yet */
-     d->B = d->u = d->amps = d->U0 = d->U1 = d->G0 = d->G0_M = d->D0
-	  = (cmplx *) NULL;
+     d->B = d->u = d->amps = d->U0 = d->U1 = (cmplx *) NULL;
+     d->G0 = d->G0_M = d->D0 = (cmplxl *) NULL;
      d->errs = (double *) NULL;
      
      CHK_MALLOC(d->z, cmplx, nf);
@@ -435,7 +433,7 @@ void harminv_data_destroy(harminv_data d)
     functions, as opposed to subroutines, from C is problematic.) */
 static cmplx symmetric_dot(int n, cmplx *x, cmplx *y)
 {
-     cmplx dot = 0;
+     cmplxl dot = 0;
      int i;
      for (i = 0; i < n; ++i)
 	  dot += x[i] * y[i];
@@ -459,6 +457,8 @@ static int ok_eigenvalue(cmplx alpha, cmplx beta)
 	     (a > b ? a : b) > ABSOLUTE_THRESHOLD);
 }
 
+/* in the future, we might be able to benefit from the expert driver */
+#define USE_ZGGEVX 0
 
 /* Solve the eigenvalue problem U1 b = u U0 b, where b is the eigenvector
    and u is the eigenvalue.  u = exp(iwt - at) then contains both the
@@ -472,6 +472,13 @@ void harminv_solve_once(harminv_data d)
      cmplx *A, *B, *VL, *VR, *alpha, *beta, *work;
      double *rwork;
      int lwork, info;
+#ifdef USE_ZGGEVX
+     int ilo, ihi;
+     double abnrm, bbnrm;
+     double *lscale, *rscale, *rconde = 0, *rcondv = 0;
+     int *iwork, *bwork = 0;
+     char balance = 'N', sense = 'N';
+#endif
      
      CHK_MALLOC(A, cmplx, J2);
      CHK_MALLOC(B, cmplx, J2);
@@ -482,19 +489,35 @@ void harminv_solve_once(harminv_data d)
      lwork = 2*J2 + 2*J;
      CHK_MALLOC(work, cmplx, lwork);
      CHK_MALLOC(rwork, double, 8*J);
+#ifdef USE_ZGGEVX
+     CHK_MALLOC(lscale, double, J);
+     CHK_MALLOC(rscale, double, J);
+     CHK_MALLOC(iwork, int, J + 2);
+#endif
      
      ZCOPY(&J2, d->U1, &one, A, &one);
      ZCOPY(&J2, d->U0, &one, B, &one);
      
+#ifdef USE_ZGGEVX
+     ZGGEVX(&balance, &jobvl, &jobvr, &sense,
+	    &J, A, &J, B, &J,
+	    alpha, beta,
+	    VL, &one, VR, &J,
+	    &ilo, &ihi, lscale, rscale, &abnrm, &bbnrm, rconde, rcondv,
+	    work, &lwork, rwork, 
+	    iwork, bwork,
+	    &info);
+#else
      ZGGEV(&jobvl, &jobvr,
 	   &J, A, &J, B, &J,
 	   alpha, beta,
 	   VL, &one, VR, &J,
 	   work, &lwork, rwork, &info);
+#endif
      
      CHECK(info >= 0, "invalid argument to ZGGEVX");
      CHECK(info <= 0, "failed convergence in ZGGEVX");
-     
+    
      /* record non-singular eigenvalues in u, B, where the
 	eigenvalues are given by alpha/beta: */
      d->nfreqs = 0;
@@ -527,6 +550,11 @@ void harminv_solve_once(harminv_data d)
 	  ZSCAL(&J, &norm, d->B + i * J, &one);
      }
      
+#ifdef USE_ZGGEVX
+     free(iwork);
+     free(rscale);
+     free(lscale);
+#endif
      free(rwork);
      free(work);
      free(beta);
@@ -565,8 +593,8 @@ void harminv_solve_again(harminv_data d, harminv_mode_ok_func ok, void *ok_d)
      free(d->z);
      free(d->amps);
      free(d->errs);
-     d->B = d->U1 = d->U0 = d->G0 = d->G0_M = d->D0
-	  = d->z = d->amps = (cmplx *) NULL;
+     d->B = d->U1 = d->U0 = d->z = d->amps = (cmplx *) NULL;
+     d->G0 = d->G0_M = d->D0 = (cmplxl *) NULL;
      d->errs = (double *) NULL;
 
      /* Spectral grid needs to be on the unit circle or system is unstable: */
@@ -726,18 +754,18 @@ cmplx *harminv_compute_amplitudes(harminv_data d)
 	and we use eq. 26 instead (which doesn't use half of the data,
 	but doesn't blow up either): */
      for (k = ku = 0; k < d->nfreqs; ++k) {
-	  a[k] = 0;
+	  cmplxl asum = 0;
 	  if (u_near_unity(d->u[k], d->n)) { /* eq. 27 */
 	       for (j = 0; j < d->J; ++j)
-		    a[k] += d->B[k * d->J + j] * Uu[j * nu + ku];
-	       a[k] /= d->K;
+		    asum += d->B[k * d->J + j] * Uu[j * nu + ku];
+	       asum /= d->K;
 	       ku++;
 	  }
 	  else { /* eq. 26 */
 	       for (j = 0; j < d->J; ++j)
-		    a[k] += d->B[k * d->J + j] * d->G0[j];
+		    asum += d->B[k * d->J + j] * d->G0[j];
 	  }
-	  a[k] *= a[k];
+	  a[k] = asum * asum;
      }
 
      free(Uu);

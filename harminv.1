@@ -155,18 +155,28 @@ multiplied by 2 pi).
 Specify the sampling interval \fIdt\fR; this determines the units of
 time used throughout the input and output.  Defaults to 1.0.
 .TP
+\fB\-d\fR \fId\fR
+Specify the spectral "density" \fId\fR to search for modes, where a
+density of 1 indicates the usual Fourier resolution.  That is, the
+number of basis functions (which sets an upper bound on the number of
+modes) is given by \fId\fR times (\fIfreq-max\fR - \fIfreq-min\fR)
+times \fIdt\fR divided by the number of samples in your dataset.
+
+Note that the frequency resolution of the outputs is \fInot\fR limited
+by the spectral density, and can generally be much greater than the
+Fourier resolution.  The density just determines how many modes, at
+most, to search for.  See also \fB\-f\fR, below.
+
+The default density is 1.1, which is usually a good value for most
+applications.  If you set the density too high, then the matrices
+become large and singular; if you set the density too low, then you
+risk missing modes.
+.TP
 \fB\-f\fR \fInf\fR
-
-Specify the "spectral density," essentially the number of frequencies
-to look for modes nearby within the frequency range.  This should be
-at least as great as the number of modes you expect to find, and
-usually you should just set it to a much greater number.  \fInf\fR
-must be at least 2, and defaults to 100.
-
-Don't set it to something too large, however: the computation time
-scales as O(N * \fInf\fR + \fInf\fR^3), where N is the number of data
-points.  Also, there may be numerical problems if \fInf\fR is too
-large.
+Specify a lower bound \fInf\fR on the number of spectral basis functions
+(defaults to 2), setting a lower bound on the number of modes to search
+for.  This option is sometimes a more convenient way to specify the number
+of basis functions than the \fB\-d\fR option, above.
 .TP
 \fB\-s\fR \fIsort\fR
 Specify how the outputs are sorted, where \fIsort\fR is one of
