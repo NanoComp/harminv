@@ -60,6 +60,7 @@ int eat_whitespace(FILE *f, int echo_comments)
      } while (isspace (c));
      ungetc(c, f); /* put back the last character read */
      newlines -= c == '\n';
+     return newlines;
 }
 
 cmplx *read_input_data(FILE *f, int *n, int verbose)
@@ -179,7 +180,7 @@ int main(int argc, char **argv)
 	  int i, cur_nf, prev_nf;
 	  harminv_data hd;
 	  cmplx *amps = NULL;
-	  double *errs = NULL, maxerr;
+	  double *errs = NULL;
 
 	  if (sscanf(argv[iarg], "%lf-%lf", &fmin, &fmax) != 2) {
 	       fprintf(stderr, "harminv: invalid argument \"%s\"\n",

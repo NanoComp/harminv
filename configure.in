@@ -15,6 +15,12 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 
+# Add lots of compiler warnings to check for if we are using gcc:
+# (The variable $GCC is set to "yes" by AC_PROG_CC if we are using gcc.)
+if test "$GCC" = "yes"; then
+	CFLAGS="$CFLAGS -Wall -W -Wbad-function-cast -Wcast-qual -Wpointer-arith -Wcast-align -pedantic"
+fi
+
 HARMINV_CC="$CC"
 HARMINV_CFLAGS="$CFLAGS"
 AC_SUBST(HARMINV_CC)

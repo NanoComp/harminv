@@ -362,32 +362,31 @@ static cmplx symmetric_dot(int n, cmplx *x, cmplx *y)
 static void solve_eigenvects(int n, cmplx *A, cmplx *V, cmplx *v)
 {
      int lwork, info;
-     cmplx *work, wsize;
+     cmplx *work;
      double *rwork;
+     cmplx wsize;
 
      /* Unfortunately, LAPACK doesn't have a special solver for the
 	complex-symmetric eigenproblem.  For now, just use the general
 	non-symmetric solver, and realize that the left eigenvectors
 	are the complex-conjugates of the right eigenvectors. */
 
-#if 0  /* why is this not working according to the zgeev man page? */
      lwork = -1; /* compute optimal workspace size */
      ZGEEV("N", "V", &n, A, &n, v, V, &n, V, &n, &wsize, &lwork, rwork, &info);
+     
      if (info == 0)
 	  lwork = floor(creal(wsize) + 0.5);
      else
 	  lwork = 2*n;
-#else
-     lwork = 2*n;
-#endif
+     CHECK(lwork > 0, "zgeev is not returning a positive work size!");
 
-     CHK_MALLOC(work, cmplx, lwork);
      CHK_MALLOC(rwork, double, 2*n);
+     CHK_MALLOC(work, cmplx, lwork);
 
      ZGEEV("N", "V", &n, A, &n, v, V, &n, V, &n, work, &lwork, rwork, &info);
 
-     free(rwork);
      free(work);
+     free(rwork);
 
      CHECK(info >= 0, "invalid argument to ZGEEV");
      CHECK(info <= 0, "failed convergence in ZGEEV");
@@ -543,10 +542,8 @@ double *harminv_compute_frequency_errors(harminv_data d)
 	dimensionless.) */
 
      for (i = 0; i < d->nfreqs; ++i) {
-	  int j;
 	  cmplx u2m = -(d->u[i] * d->u[i]);
 	  cmplx zone = 1.0, zzero = 0.0;
-	  double normB;
 
 	  /* Compute R = (U2 - u^2 U0): */
 	  ZCOPY(&J2, U2, &one, R, &one);
@@ -608,7 +605,6 @@ int harminv_get_num_freqs(harminv_data d)
 
 double harminv_get_freq(harminv_data d, int k)
 {
-     double freq;
      CHECK(d->u, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_freq");
