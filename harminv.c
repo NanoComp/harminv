@@ -364,21 +364,24 @@ static void solve_eigenvects(int n, cmplx *A, cmplx *V, cmplx *v)
      int lwork, info;
      cmplx *work;
      double *rwork;
-     cmplx wsize;
 
      /* Unfortunately, LAPACK doesn't have a special solver for the
 	complex-symmetric eigenproblem.  For now, just use the general
 	non-symmetric solver, and realize that the left eigenvectors
 	are the complex-conjugates of the right eigenvectors. */
 
+#if 0  /* LAPACK seems to be buggy here, returning ridiculous sizes at times */
+     cmplx wsize;
      lwork = -1; /* compute optimal workspace size */
      ZGEEV("N", "V", &n, A, &n, v, V, &n, V, &n, &wsize, &lwork, rwork, &info);
-     
      if (info == 0)
 	  lwork = floor(creal(wsize) + 0.5);
      else
 	  lwork = 2*n;
      CHECK(lwork > 0, "zgeev is not returning a positive work size!");
+#else
+     lwork = 4*n; /* minimum is 2*n; we'll be generous. */
+#endif
 
      CHK_MALLOC(rwork, double, 2*n);
      CHK_MALLOC(work, cmplx, lwork);
