@@ -89,8 +89,6 @@
 #define ZGEMV BLAS_FUNC(gemv,GEMV)
 #define ZSCAL BLAS_FUNC(scal,SCAL)
 
-#define HARMINV_ZDOTU F77_FUNC_(harminv_zdotu, HARMINV_ZDOTU)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
