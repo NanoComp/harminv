@@ -5,9 +5,11 @@
    without it. */
 #include <complex.h>
 
+#include "config.h"
+
 /**************************************************************************/
 
-typedef double _Complex cmplx;
+typedef double complex cmplx;
 
 typedef struct harminv_data_struct {
      const cmplx *c;

@@ -18,6 +18,8 @@ int eat_whitespace(FILE *f, int echo_comments)
 	  } while (isspace(c));
 	  
 	  if (c == '#')  /* # begins comments that extend to the newline */
+	       if (echo_comments)
+		    putc(c, stdout);
 	       do {
 		    c = getc(f);
 		    if (echo_comments) {

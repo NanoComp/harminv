@@ -1,0 +1,125 @@
+# Process this file with autoconf to produce a configure script.
+AC_INIT(harminv.c)
+AC_CONFIG_HEADER(config.h)
+
+VERSION=0.1
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Define to the version number string.])
+AC_SUBST(VERSION)
+
+# Fortran libraries are (probably) required for BLAS and LAPACK:
+AC_F77_LIBRARY_LDFLAGS
+LIBS="$LIBS $FLIBS"
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_MAKE_SET
+AC_PROG_INSTALL
+
+# check how to transform the name of the installed program:
+AC_ARG_PROGRAM
+
+# Checks for header files.
+AC_HEADER_STDC
+
+AC_CHECK_LIB(m, sqrt)
+
+###########################################################################
+
+AC_CACHE_CHECK([for C complex keyword], acx_cv_c_complex,
+[acx_cv_c_complex=unsupported
+ for acx_kw in complex _Complex __complex__; do
+   AC_TRY_COMPILE([#include <complex.h>], [float $acx_kw foo;],
+                  [acx_cv_c_complex=$acx_kw; break])
+ done
+])
+if test "$acx_cv_c_complex" = "unsupported"; then
+  AC_MSG_ERROR("Your C compiler does not support complex numbers.")
+else
+  if test "$acx_cv_c_complex" != "complex"; then
+    AC_DEFINE_UNQUOTED(complex, $acx_cv_c_complex, [Define to equivalent of C99 complex keyword.  Do not define if complex is supported directly.])
+  fi
+fi
+
+###########################################################################
+
+# Checks for BLAS libraries:
+
+# Generic BLAS:
+AC_CHECK_LIB(blas, main)
+
+# remember current libs, so we can check if any libs were found below.
+save_LIBS="$LIBS"
+
+AC_ARG_WITH(fastblas, [  --without-fastblas      don't use accelerated BLAS], ok=$withval, ok=yes)
+if test "$ok" = "no"; then
+	save_LIBS="xxxxxxxx"
+elif test "$ok" != "yes"; then
+	# user specified a BLAS library to try on the command line
+	AC_CHECK_LIB($ok, main)
+fi
+
+if test "$save_LIBS" = "$LIBS"; then
+	# BLAS in Alpha CXML library?
+	AC_CHECK_LIB(cxml, dgemm_)
+fi
+
+if test "$save_LIBS" = "$LIBS"; then
+	# BLAS in Alpha DXML library? (now called CXML, see above)
+	AC_CHECK_LIB(dxml, dgemm_)
+fi
+
+if test "$save_LIBS" = "$LIBS"; then
+	# Check for BLAS in Sun Performance library:
+	# old: AC_CHECK_LIB(SUNWPro_lic, __lsp_rethread_mn_ph_)
+	AC_CHECK_LIB(sunmath, acosp)
+	AC_CHECK_LIB(sunperf, dgemm_,
+        	[LIBS="-xlic_lib=sunperf $LIBS"])
+fi
+
+if test "$save_LIBS" = "$LIBS"; then
+	# Check for BLAS in SCSL and SGIMATH libraries (prefer SCSL):
+	AC_CHECK_LIB(scs, dgemm_,
+	             LIBS="-lscs $LIBS", 
+		     AC_CHECK_LIB(complib.sgimath, dgemm_))
+fi
+
+if test "$save_LIBS" = "$LIBS"; then
+	# Checks for BLAS in IBM ESSL library
+	AC_CHECK_LIB(essl, dgemm)
+fi
+
+if test "$save_LIBS" = "$LIBS"; then
+	# Checks for ATLAS BLAS library:
+	AC_CHECK_LIB(atlas, ATL_xerbla)
+	if test "$save_LIBS" != "$LIBS"; then
+		# check for other atlas libs:
+		AC_CHECK_LIB(cblas, cblas_dgemm)
+		AC_CHECK_LIB(f77blas, main)
+	fi
+fi
+
+if test "$save_LIBS" = "$LIBS"; then
+	# Checks for BLAS dgemm/sgemm libraries (produced by PhiPACK):
+	AC_CHECK_LIB(dgemm, main)
+	AC_CHECK_LIB(sgemm, main)
+fi
+
+if test "$save_LIBS" = "$LIBS"; then
+	# Optimized BLAS for Pentium Pro (from ASCII Red project):
+	# (see http://www.cs.utk.edu/~ghenry/distrib/)
+	AC_CHECK_LIB(blasppro1.1o,main)
+fi
+
+###########################################################################
+
+# Checks for LAPACK library
+AC_CHECK_LIB(lapack, main)
+
+# check for ATLAS LAPACK replacement functions:
+if test -n "`echo $LIBS | grep atlas`"; then
+	AC_CHECK_LIB(atlaslapack, main)
+fi
+
+###########################################################################
+
+AC_OUTPUT(Makefile)
