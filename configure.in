@@ -170,7 +170,7 @@ fi
 
 # First, for Cray, see if library is available without -llapack, then
 # try -llapack.
-AC_CHECK_FUNC(ZGEEV,,AC_CHECK_LIB(lapack, main))
+AC_CHECK_FUNC(CGEEV,,AC_CHECK_LIB(lapack, main))
 
 ###########################################################################
 
