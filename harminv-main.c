@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 		   usage(stdout);
 		   return EXIT_SUCCESS;
 	      case 'V':
-		   printf("harminv " VERSION " by Steven G. Johnson\n"
+		   printf("harminv " PACKAGE_VERSION " by Steven G. Johnson\n"
 			  COPYRIGHT);
 		   return EXIT_SUCCESS;
 	      case 'v':
@@ -251,3 +251,10 @@ int main(int argc, char **argv)
      free(data);
      return EXIT_SUCCESS;
 }
+
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+extern "C"
+#  endif
+int F77_DUMMY_MAIN() { return 1; }
+#endif

@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 		   usage(stdout);
 		   return EXIT_SUCCESS;
 	      case 'V':
-		   printf("sines " VERSION " by Steven G. Johnson.\n"
+		   printf("sines " PACKAGE_VERSION " by Steven G. Johnson.\n"
 			  "Test program for harminv.\n"
 			  COPYRIGHT);
 		   return EXIT_SUCCESS;
@@ -187,3 +187,10 @@ int main(int argc, char **argv)
      free(sines);
      return EXIT_SUCCESS;
 }
+
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+extern "C"
+#  endif
+int F77_DUMMY_MAIN() { return 1; }
+#endif
