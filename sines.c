@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 	  }
 
 	  if (verbose)
-	       printf("# mode: frequency = %g (period %g), decay = %g (lifetime %g), amplitude = %g, phase = %g\n", s.freq, 1/s.freq, s.decay, 1/s.decay, s.amplitude, s.phase);
+	       printf("# mode: frequency = %g (period %g), decay = %g (lifetime %g), amplitude = %g, phase = %g\n", s.freq, 1/s.freq, s.decay, s.decay != 0 ? 1/s.decay : 0, s.amplitude, s.phase);
 
 	  if (nsines >= nalloc) {
 	       nalloc = (nalloc + 1) * 2;
