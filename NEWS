@@ -3,6 +3,8 @@ Harminv 1.2.1:
  * Impose a maximum number of basis modes (300) to prevent the matrices
    from getting too large.
 
+ * Corrected typo in man page (for definition of -d density).
+
 Harminv 1.2:
 
  * Command line tool now defaults to a particular spectral "density"
