@@ -79,24 +79,43 @@
 
 #endif
 
-#define ZGEEV F77_FUNC(zgeev,ZGEEV)
-#define ZGEMM F77_FUNC(zgemm,ZGEMM)
-#define ZCOPY F77_FUNC(zcopy,ZCOPY)
-#define ZAXPY F77_FUNC(zaxpy,ZAXPY)
-#define ZGEMV F77_FUNC(zgemv,ZGEMV)
-#define ZSCAL F77_FUNC(zscal,ZSCAL)
+/* Crays have float == double, and don't have the Z* functions in
+   LAPACK/BLAS...we have to use C*.  Sigh. */
+#if defined(CRAY) || defined(_UNICOS) || defined(_CRAYMPP)
+#  define BLAS_FUNC(x,X) F77_FUNC(c##x,C##X)
+#else  /* ! CRAY */
+#  define BLAS_FUNC(x,X) F77_FUNC(z##x,Z##X)
+#endif /* ! CRAY */
+
+#define ZGEEV BLAS_FUNC(geev,GEEV)
+#define ZGEMM BLAS_FUNC(gemm,GEMM)
+#define ZCOPY BLAS_FUNC(copy,COPY)
+#define ZAXPY BLAS_FUNC(axpy,AXPY)
+#define ZGEMV BLAS_FUNC(gemv,GEMV)
+#define ZSCAL BLAS_FUNC(scal,SCAL)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern void ZGEEV(char*,char*, int*, cmplx*,int*, cmplx*, cmplx*,int*,
+/* We have to pass strings in special ways on Crays, even
+   for passing a single character as with LAPACK.  Sigh. */
+#if defined(CRAY) || defined(_UNICOS) || defined(_CRAYMPP)
+#  include <fortran.h>
+#  define FCHARP _fcd
+#  define F_(s) _cptofcd(s,1)  /* second argument is the string length */
+#else  /* ! CRAY */
+#  define FCHARP char*
+#  define F_(s) (s)
+#endif
+
+extern void ZGEEV(FCHARP,FCHARP, int*, cmplx*,int*, cmplx*, cmplx*,int*,
 		  cmplx*,int*, cmplx*,int*, double*, int*);
-extern void ZGEMM(char*,char*, int*,int*,int*, cmplx*,
+extern void ZGEMM(FCHARP,FCHARP, int*,int*,int*, cmplx*,
 		  cmplx*,int*, cmplx*,int*, cmplx*, cmplx*,int*);
 extern void ZCOPY(int*, cmplx*,int*, cmplx*,int*);
 extern void ZAXPY(int*, cmplx*, cmplx*,int*, cmplx*,int*);
-extern void ZGEMV(char*, int*,int*, cmplx*, cmplx*,int*, cmplx*,int*,
+extern void ZGEMV(FCHARP, int*,int*, cmplx*, cmplx*,int*, cmplx*,int*,
 		  cmplx*, cmplx*,int*);
 extern void ZSCAL(int*, cmplx*, cmplx*,int*);
 
@@ -386,7 +405,7 @@ static void solve_eigenvects(int n, cmplx *A, cmplx *V, cmplx *v)
 #if 0  /* LAPACK seems to be buggy here, returning ridiculous sizes at times */
      cmplx wsize;
      lwork = -1; /* compute optimal workspace size */
-     ZGEEV("N", "V", &n, A, &n, v, V, &n, V, &n, &wsize, &lwork, rwork, &info);
+     ZGEEV(F_("N"), F_("V"), &n, A, &n, v, V, &n, V, &n, &wsize, &lwork, rwork, &info);
      if (info == 0)
 	  lwork = floor(creal(wsize) + 0.5);
      else
@@ -399,7 +418,7 @@ static void solve_eigenvects(int n, cmplx *A, cmplx *V, cmplx *v)
      CHK_MALLOC(rwork, double, 2*n);
      CHK_MALLOC(work, cmplx, lwork);
 
-     ZGEEV("N", "V", &n, A, &n, v, V, &n, V, &n, work, &lwork, rwork, &info);
+     ZGEEV(F_("N"), F_("V"), &n, A, &n, v, V, &n, V, &n, work, &lwork, rwork, &info);
 
      free(work);
      free(rwork);
@@ -486,16 +505,16 @@ void harminv_solve(harminv_data d)
      /* compute H1 = V0 * U1 * V0': */
 
      /* B = V0 * U1: */
-     ZGEMM("N", "N", &J, &d->nfreqs, &J,
+     ZGEMM(F_("N"), F_("N"), &J, &d->nfreqs, &J,
 	   &zone, d->U1, &J, V0, &J, &zzero, d->B, &J);
      /* H1 = B * transpose(V0) */
-     ZGEMM("T", "N", &d->nfreqs, &d->nfreqs, &J,
+     ZGEMM(F_("T"), F_("N"), &d->nfreqs, &d->nfreqs, &J,
 	   &zone, V0, &J, d->B, &J, &zzero, H1, &d->nfreqs);
 
      /* Finally, we can find the eigenvalues and eigenvectors: */
      solve_eigenvects(d->nfreqs, H1, V1, d->u);
      /* B = V1 * V0: */
-     ZGEMM("N", "N", &J, &d->nfreqs, &d->nfreqs,
+     ZGEMM(F_("N"), F_("N"), &J, &d->nfreqs, &d->nfreqs,
 	   &zone, V0, &J, V1, &d->nfreqs, &zzero, d->B, &J);
 
      free(H1);
@@ -569,7 +588,7 @@ double *harminv_compute_frequency_errors(harminv_data d)
 	     is for row/column-major conversion.  In some sense it doesn't
 	     matter since R is symmetric, but this should be more efficient
 	     since it can then read R row-wise (contiguously).)*/
-	  ZGEMV("T", &d->J, &d->J, 
+	  ZGEMV(F_("T"), &d->J, &d->J, 
 		&zone, R, &d->J, d->B + i * d->J, &one,
 		&zzero, r, &one);
 

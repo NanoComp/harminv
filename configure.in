@@ -90,7 +90,10 @@ AC_CHECK_LIB(m, sqrt)
 
 # Checks for BLAS libraries:
 
+save_LIBS0="$LIBS"
+
 # Generic BLAS:
+# FIXME: what libs need -lblas in addition to accelerated blas?
 AC_CHECK_LIB(blas, main)
 
 # remember current libs, so we can check if any libs were found below.
@@ -102,6 +105,11 @@ if test "$ok" = "no"; then
 elif test "$ok" != "yes"; then
 	# user specified a BLAS library to try on the command line
 	AC_CHECK_LIB($ok, main)
+fi
+
+if test "$save_LIBS" = "$LIBS"; then
+	# BLAS in Cray libsci?  Don't use -lblas if so.
+	AC_CHECK_LIB(sci, CGEMM, LIBS="-lsci $save_LIBS0")
 fi
 
 if test "$save_LIBS" = "$LIBS"; then
@@ -158,13 +166,11 @@ fi
 
 ###########################################################################
 
-# Checks for LAPACK library
-AC_CHECK_LIB(lapack, main)
+# Checks for LAPACK library.
 
-# check for ATLAS LAPACK replacement functions:
-if test -n "`echo $LIBS | grep atlas`"; then
-	AC_CHECK_LIB(atlaslapack, main)
-fi
+# First, for Cray, see if library is available without -llapack, then
+# try -llapack.
+AC_CHECK_FUNC(ZGEEV,,AC_CHECK_LIB(lapack, main))
 
 ###########################################################################
 
