@@ -250,6 +250,7 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
      return ok;
 }
 
+#define SOLVE_ONCE_ONLY 0 /* 1 to use harminv_solve_once */
 #define SOLVE_OK_ONLY 0 /* 1 for experimental solver */
 
 int main(int argc, char **argv)
@@ -398,6 +399,8 @@ int main(int argc, char **argv)
 	  
 #if SOLVE_OK_ONLY
 	  harminv_solve_ok_modes(hd, mode_ok, &ok_d);
+#elif SOLVE_ONCE_ONLY
+	  harminv_solve_once(hd);
 #else
 	  harminv_solve(hd);
 #endif
