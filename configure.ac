@@ -107,9 +107,7 @@ AC_CHECK_LIB(m, sqrt)
 
 # Checks for BLAS/LAPACK libraries:
 
-sinclude(acx_blas.m4)
 ACX_BLAS([], [AC_MSG_ERROR([BLAS library not found])])
-sinclude(acx_lapack.m4)
 ACX_LAPACK([], [AC_MSG_ERROR([LAPACK library not found])])
 
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
