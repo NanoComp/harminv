@@ -133,7 +133,7 @@ The complex amplitude (|amp| * exp(-I phase)) for each k is returned by:
 
 A crude estimate of the relative error in the (complex) frequency is:
 
-	double harminv_get_frequency_error(harminv_data d, int k);
+	double harminv_get_freq_error(harminv_data d, int k);
 
 As described in 'man harminv', this is not really an error bar, and
 should be treated more as a figure of merit (smaller is better).

@@ -789,7 +789,7 @@ cmplx harminv_get_amplitude(harminv_data d, int k)
      return d->amps[k];
 }
 
-double harminv_get_frequency_error(harminv_data d, int k)
+double harminv_get_freq_error(harminv_data d, int k)
 {
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_freq");

@@ -52,7 +52,7 @@ extern double harminv_get_Q(harminv_data d, int k);
 extern double harminv_get_decay(harminv_data d, int k);
 extern harminv_complex harminv_get_omega(harminv_data d, int k);
 extern harminv_complex harminv_get_amplitude(harminv_data d, int k);
-extern double harminv_get_frequency_error(harminv_data d, int k);
+extern double harminv_get_freq_error(harminv_data d, int k);
 
 /* the following routines are undocumented and not recommended */
 extern void harminv_solve_once(harminv_data d);
@@ -60,7 +60,7 @@ extern void harminv_solve_again(harminv_data d,
 				harminv_mode_ok_func ok, void *ok_d);
 extern void harminv_solve_ok_modes(harminv_data d,
 				   harminv_mode_ok_func ok, void *ok_d);
-extern double *harminv_compute_frequency_errors(harminv_data d);
+extern double *harminv_compute_freq_errors(harminv_data d);
 extern harminv_complex *harminv_compute_amplitudes(harminv_data d);
 
 /**************************************************************************/

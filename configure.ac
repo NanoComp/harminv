@@ -7,7 +7,7 @@ AM_MAINTAINER_MODE
 
 # Shared-library version number; indicates api compatibility, and is
 # *not* the same as the "public" version number.
-SHARED_VERSION_INFO="2:0:1"
+SHARED_VERSION_INFO="2:0:0"
 AC_SUBST(SHARED_VERSION_INFO)
 AM_ENABLE_SHARED(no) dnl shared libs cause too many headaches to be default
 
