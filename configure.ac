@@ -11,6 +11,19 @@ SHARED_VERSION_INFO="2:0:1"
 AC_SUBST(SHARED_VERSION_INFO)
 AM_ENABLE_SHARED(no) dnl shared libs cause too many headaches to be default
 
+##############################################################################
+
+AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug,compile for debugging])],
+	      enable_debug=$enableval, enable_debug=no)
+if test "$enable_debug" = "yes"; then
+	CFLAGS="-g"
+	CXXFLAGS="-g"
+	FFLAGS="-g"
+	AC_DEFINE(DEBUG,1,[define to enable debugging code])
+fi
+
+##############################################################################
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
