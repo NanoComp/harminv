@@ -47,6 +47,7 @@ void usage(FILE *f)
              "         -v : verbose output\n"
 	     "         -T : specify periods instead of frequencies\n"
 	     "         -r : random amplitudes\n"
+	     "     -N <a> : add white noise with amplitude <a>\n"
 	     "     -n <n> : output <n> points (default %d * max period)\n"
 	     "    -t <dt> : time step <dt> (default 1.0)\n",
 	     NPERIODS);
@@ -70,11 +71,12 @@ int main(int argc, char **argv)
      int nsines = 0, nalloc = 0, n = 0;
      double max_period = 0;
      double dt = 1.0;
+     double noise = 0.0;
      int i, is;
 
      srand(time(NULL));
 
-     while ((c = getopt(argc, argv, "hVvTrn:t:")) != -1)
+     while ((c = getopt(argc, argv, "hVvTrn:t:N:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -92,6 +94,9 @@ int main(int argc, char **argv)
 		   break;
 	      case 'r':
 		   random_amplitudes = 1;
+		   break;
+	      case 'N':
+		   noise = atof(optarg);
 		   break;
 	      case 'n':
 		   n = atoi(optarg);
@@ -175,6 +180,7 @@ int main(int argc, char **argv)
 	       output += sines[is].amplitude *
 		    cexp(I * (sines[is].phase - TWOPI*sines[is].freq * i*dt)
 			 - sines[is].decay * i*dt);
+	  output += noise * (rand() * 2.0/RAND_MAX - 1);
 	  printf("%0.17e+%0.17ei\n", creal(output), cimag(output));
      }
 
