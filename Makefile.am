@@ -7,7 +7,7 @@ noinst_PROGRAMS = sines
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harminv.pc
 
-EXTRA_DIST = COPYRIGHT harminv.pc.in
+EXTRA_DIST = COPYRIGHT harminv.pc.in acx_blas.m4 acx_lapack.m4
 
 libharminv_la_SOURCES = harminv.c harminv.h harminv-int.h check.h
 libharminv_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@
