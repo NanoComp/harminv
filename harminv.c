@@ -360,17 +360,14 @@ harminv_data harminv_data_create(int n,
      
      CHK_MALLOC(d->z, cmplx, nf);
      for (i = 0; i < nf; ++i)
-//	  d->z[i] = cexp(-I * TWOPI * (fmin + i * ((fmax - fmin) / (nf - 1))));
-{
-     d->z[i] = cexp(-I * TWOPI * (fmin + (i+0.5) * ((fmax - fmin) / (nf - 0))));
-//     printf("z[%d] = (%g,%g)\n", i+1, TWOPI * (fmin + (i+0.5) * ((fmax - fmin) / (nf - 0))), 0.0);
-}
+	  d->z[i] = cexp(-I * TWOPI * (fmin + i * ((fmax - fmin) / (nf - 1))));
 
      init_z(d, nf, d->z);
 
      d->nfreqs = 0;
-     d->B = d->u = NULL;  /* we haven't computed eigen-solutions yet */
-
+     d->B = d->u = d->amps = d->errs
+	  = (cmplx *) NULL;  /* we haven't computed eigen-solutions yet */
+     
      return d;
 }
 
@@ -382,6 +379,8 @@ void harminv_data_destroy(harminv_data d)
 	  free(d->u); free(d->B);
 	  free(d->U1); free(d->U0);
 	  free(d->z);
+	  free(d->amps);
+	  free(d->errs);
 	  free(d);
      }
 }
@@ -508,6 +507,8 @@ void harminv_solve_again(harminv_data d)
      free(d->B);
      free(d->U1); free(d->U0);
      free(d->z);
+     free(d->amps);
+     free(d->errs);
 
      /* Spectral grid needs to be on the unit circle or system is unstable: */
      for (i = 0; i < d->nfreqs; ++i)
@@ -643,6 +644,32 @@ double harminv_get_decay(const harminv_data d, int k)
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_freq");
      return(-log(cabs(d->u[k])));
+}
+
+cmplx harminv_get_omega(const harminv_data d, int k)
+{
+     CHECK(d->u, "haven't computed eigensolutions yet");
+     CHECK(k >= 0 && k < d->nfreqs,
+	   "argument out of range in harminv_get_freq");
+     return(-clog(d->u[k]));
+}
+
+cmplx harminv_get_amplitude(harminv_data d, int k)
+{
+     CHECK(k >= 0 && k < d->nfreqs,
+	   "argument out of range in harminv_get_freq");
+     if (!d->amps)
+	  d->amps = harminv_compute_amplitudes(d);
+     return d->amps[k];
+}
+
+cmplx harminv_get_frequency_error(harminv_data d, int k)
+{
+     CHECK(k >= 0 && k < d->nfreqs,
+	   "argument out of range in harminv_get_freq");
+     if (!d->errs)
+	  d->errs = harminv_compute_frequency_errors(d);
+     return d->errs[k];
 }
 
 /**************************************************************************/
