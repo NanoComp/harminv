@@ -33,10 +33,10 @@
 typedef harminv_complex cmplx; /* shortcut */
 
 /* define extended precision (long double) cmplxl type */
-#ifdef HAVE_LONG_DOUBLE
+#if defined(HAVE_LONG_DOUBLE) && !defined(__cplusplus)
 #  if defined(__cplusplus)
 #  include <complex>
-typedef std::complex<long double> cmplxl;
+typedef std::complex<long double> cmplxl; // problematic w/some C++ compilers
 
 #  elif defined(_Complex_I) && defined(complex) && defined(I)
 /* C99 <complex.h> header was included before harminv.h */
