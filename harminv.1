@@ -38,13 +38,14 @@ described in V. A. Mandelshtam and H. S. Taylor, "Harmonic inversion
 of time signals," \fIJ. Chem. Phys.\fR \fB107\fR, 6756 (1997).  See
 also erratum, \fIibid\fR \fB109\fR, 4128 (1998).
 .SH INPUT
-\fBharminv\fR reads in a sequence of real or complex numbers from standard
-input, as well as command-line arguments indicating one or more
-frequency ranges to search, and outputs the modes that it extracts
-from the data.  (It preferentially finds modes in the frequency range
-you specify, but may sometimes find additional modes outside of that
-range.)  The data should correspond to equally-spaced time intervals,
-but there is no constraint on the number of points.
+\fBharminv\fR reads in a sequence of whitespace-separated real or
+complex numbers from standard input, as well as command-line arguments
+indicating one or more frequency ranges to search, and outputs the
+modes that it extracts from the data.  (It preferentially finds modes
+in the frequency range you specify, but may sometimes find additional
+modes outside of that range.)  The data should correspond to
+equally-spaced time intervals, but there is no constraint on the
+number of points.
 
 Complex numbers in the input should be expressed in the format
 \fIRE\fR+\fIIM\fRi (no whitespace).  Otherwise, whitespace is ignored.
