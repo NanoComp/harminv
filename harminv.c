@@ -150,10 +150,10 @@ static cmplx cpow_i(cmplx c, int n)
    Also, if U1 != NULL, then set U1 = U_{p+1}(z,z2).  If z == z2, it
    must be the case that no two elements of z are the same and that
    J2 == J1; in this case the matrix U will be symmetric.  Note that c
-   must be an array whose size is at least 2*K+p-1 elements.  */
+   must be an array whose size n, is at least 2*K+p elements.  */
 static void generate_U(cmplx *U, cmplx *U1,
 		       int p, 
-		       const cmplx *c,
+		       const cmplx *c, int n,
 		       int K,
 		       int J, int J2, const cmplx *z, const cmplx *z2)
 {
@@ -165,6 +165,7 @@ static void generate_U(cmplx *U, cmplx *U1,
      cmplx *z2_inv, *z2_m, *z2_M, *G2, *G2_M; 
 
      CHECK(U && c && z && z2, "invalid arguments to generate_U");
+     CHECK(n >= 2*K + p, "too few coefficients in generate_U");
      CHECK(z != z2 || J == J2, "invalid sizes passed to generate_U");
      
      /* Now, compute U according to eqs. 25-27 of Chen & Guo, but
@@ -208,14 +209,9 @@ static void generate_U(cmplx *U, cmplx *U1,
 	spectral functions G and G_M (corresponding to G_p and
 	G_{p+M+1} in C&G), as well as the diagonal matrix entries: */
      for (m = 0; m <= M; ++m) {
-	  cmplx c1 = c[m + p], c2;
+	  cmplx c1 = c[m + p], c2 = c[m + p + M + 1];
 	  double d = m + 1; /* M - fabs(M - m) + 1 */
 	  double d2 = M - m; /* M - fabs(M - (m + M + 1)) + 1 */
-
-	  if (m < M)
-	       c2 = c[m + p + M + 1];
-	  else
-	       c2 = 0;
 
 	  for (i = 0; i < J; ++i) {
 	       cmplx x1 = z_m[i] * c1;
@@ -315,7 +311,7 @@ static void init_z(harminv_data d, int J, cmplx *z)
      d->z = z;
      CHK_MALLOC(d->U0, cmplx, J*J);
      CHK_MALLOC(d->U1, cmplx, J*J);
-     generate_U(d->U0, d->U1, 0, d->c, d->K, d->J, d->J, d->z, d->z);
+     generate_U(d->U0, d->U1, 0, d->c, d->n, d->K, d->J, d->J, d->z, d->z);
 }
 
 /**************************************************************************/
@@ -342,7 +338,7 @@ harminv_data harminv_data_create(int n,
      CHK_MALLOC(d, struct harminv_data_struct, 1);
      d->c = signal;
      d->n = n;
-     d->K = (n - 1) / 2;
+     d->K = n/2 - 1;
      d->fmin = fmin;
      d->fmax = fmax;
      
@@ -581,7 +577,7 @@ double *harminv_compute_frequency_errors(harminv_data d)
      
      J2 = d->J*d->J;
      CHK_MALLOC(U2, cmplx, J2);
-     generate_U(U2, NULL, 2, d->c, d->K, d->J, d->J, d->z, d->z);
+     generate_U(U2, NULL, 2, d->c, d->n, d->K, d->J, d->J, d->z, d->z);
      CHK_MALLOC(R, cmplx, J2);
      CHK_MALLOC(r, cmplx, d->J);
 
@@ -632,7 +628,7 @@ cmplx *harminv_compute_amplitudes(harminv_data d)
      CHK_MALLOC(a, cmplx, d->nfreqs);
 
      CHK_MALLOC(Uu, cmplx, d->J * d->nfreqs);
-     generate_U(Uu, NULL, 0, d->c, d->K, d->J, d->nfreqs, d->z, d->u);
+     generate_U(Uu, NULL, 0, d->c, d->n, d->K, d->J, d->nfreqs, d->z, d->u);
 
      /* compute the amplitudes via eq. 27 of M&T: */
      for (k = 0; k < d->nfreqs; ++k) {
