@@ -3,7 +3,7 @@ Harminv 1.2:
  * Command line tool now defaults to a particular spectral "density"
    (set by the -d option), rather than a number of basis modes,
    since using too many basis modes leads to a singular eigenproblem
-   and numerical instability.
+   and numerical instability.  (Based on defaults from M&T references.)
 
  * Use long double precision, if available, to reduce accumulation
    of floating-point errors while computing Fourier/Z transforms.
