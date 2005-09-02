@@ -126,8 +126,8 @@ const double inf = INFINITY;
 const double inf = 1.0 / 0.0;
 #endif
 
-#define DENSITY 1.1
-#define NFMIN 2
+#define DENSITY 0
+#define NFMIN 100
 #define NFMAX 300
 #define ERR_THRESH 0.1
 #define REL_ERR_THRESH inf
