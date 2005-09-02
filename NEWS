@@ -1,3 +1,11 @@
+Harminv 1.3:
+
+ * Switch back to eigensolver technique used in Harminv 1.0.x, which first
+   removes the singular null space as described by Wall and Neuhauser.
+   This seems to make the solution much more stable and reliable.  The
+   command-line tool once again defaults to 100 basis modes rather than
+   a particular spectral density.
+
 Harminv 1.2.1:
 
  * Impose a maximum number of basis modes (300) to prevent the matrices
