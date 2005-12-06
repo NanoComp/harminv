@@ -144,6 +144,7 @@ static void usage(FILE *f)
              "         -v : verbose output\n"
 	     "         -T : specify periods instead of frequencies\n"
 	     "         -w : specify/output angular frequency, not frequency\n"
+	     "         -n : flip the sign of the frequency convention\n"
 	     "    -t <dt> : specify sampling interval dt [default: 1]\n"
 	     "     -d <d> : specify spectral density [default: %g]\n"
 	     "    -f <nf> : use at least <nf> basis functions [default: %d]\n"
@@ -269,6 +270,7 @@ int main(int argc, char **argv)
      extern int optind;
      int specify_periods = 0;
      int specify_omega = 0;
+     int negate_omega = 0;
      double dt = 1.0;
      mode_ok_data ok_d;
      int n, nf, nfmin = NFMIN;
@@ -283,7 +285,7 @@ int main(int argc, char **argv)
      ok_d.rel_amp_thresh = REL_AMP_THRESH;
      ok_d.Q_thresh = Q_THRESH;
 
-     while ((c = getopt(argc, argv, "hvVTFwt:d:f:s:e:E:a:A:Q:")) != -1)
+     while ((c = getopt(argc, argv, "hvVTFwnt:d:f:s:e:E:a:A:Q:")) != -1)
 	  switch (c) {
 	      case 'h':
 		   usage(stdout);
@@ -300,6 +302,9 @@ int main(int argc, char **argv)
 		   break;
 	      case 'w':
 		   specify_omega = 1;
+		   break;
+	      case 'n':
+		   negate_omega = 1;
 		   break;
 	      case 'F':
 		   ok_d.only_f_inrange = 1;
@@ -406,6 +411,8 @@ int main(int argc, char **argv)
 	       fmin /= TWOPI;
 	       fmax /= TWOPI;
 	  }
+	  if (negate_omega)
+	       dt *= -1;
 	  if ((fmin > fmax && dt > 0) || (fmin < fmax && dt < 0)) {
 	       double dummy = fmin;
 	       fmin = fmax;
