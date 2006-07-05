@@ -1,3 +1,8 @@
+Harminv 1.3.1:
+
+ * Fixed the phase output column to have the same sign as the documentation
+   (the sign was flipped).  Thanks to Andrew Norton for the bug report.
+
 Harminv 1.3:
 
  * Switch back to eigensolver technique used in Harminv 1.0.x, which first
