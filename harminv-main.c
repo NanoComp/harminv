@@ -461,7 +461,7 @@ int main(int argc, char **argv)
 	       printf("%g, %e, %g, %g, %g, %e\n",
 		      freq * (specify_omega ? TWOPI : 1.0), decay,
 		      harminv_get_Q(hd, j),
-		      cabs(amp), carg(amp), err);
+		      cabs(amp), carg(amp) * (dt < 0 ? -1 : 1), err);
 	  }
 
 #if !SOLVE_OK_ONLY
