@@ -123,10 +123,10 @@ static cmplx *read_input_data(FILE *f, int *n, int verbose)
 #ifdef INFINITY
 const double inf = INFINITY;
 #else
-const double inf = 1.0 / 0.0;
+const double inf = 1e100; /* rather use 1.0/0.0, but some systems complain */
 #endif
 
-#define DENSITY 0
+#define DENSITY 0.0
 #define NFMIN 100
 #define NFMAX 300
 #define ERR_THRESH 0.1
