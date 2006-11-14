@@ -154,7 +154,7 @@ static void usage(FILE *f)
 	     "    -A <A> : discard amplitudes < <A> [default: %g]\n"
 	     "    -e <e> : discard relative errors > min * <e> [default: %e]\n"
 	     "    -E <E> : discard relative errors > <E> [default: %e]\n"
-	     "    -Q <Q> : discard Q > <E> [default: %g]\n",
+	     "    -Q <Q> : discard Q > <Q> [default: %g]\n",
 	     DENSITY,
 	     NFMIN,
 	     AMP_THRESH, REL_AMP_THRESH,
