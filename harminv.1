@@ -19,7 +19,7 @@
 harminv \- extract mode frequencies from time-series data
 .SH SYNOPSIS
 .B harminv
-[\fIOPTION\fR]... [\fIfreq-min\fR-\fIfreq-max\fR]...
+[\fIOPTION\fR]... [\fIfreq-min\fR\-\fIfreq-max\fR]...
 .SH DESCRIPTION
 .PP
 ." Add any additional description here
@@ -54,7 +54,7 @@ are ignored.
 
 A typical invocation is something like
 .IP "" 4
-harminv -t 0.02 1-5 < input.dat
+harminv \-t 0.02 1\-5 < input.dat
 .PP
 which reads a sequence of samples, spaced at 0.02 time intervals (in
 ms, say, corresponding to 50 kHz), and searches for modes in the
@@ -64,9 +64,9 @@ frequency range 1-5 kHz.  (See below on units.)
 line for each mode: frequency, decay constant, Q, amplitude, phase,
 and error.  Each mode corresponds to a function of the form:
 
-\fIamplitude\fR * exp[-i (2 pi \fIfrequency\fR t - \fIphase\fR) - \fIdecay\fR t]
+\fIamplitude\fR * exp[\-i (2 pi \fIfrequency\fR t \- \fIphase\fR) \- \fIdecay\fR t]
 
-Here, i is sqrt(-1), t is the time (see below for units), and the
+Here, i is sqrt(\-1), t is the time (see below for units), and the
 other parameters in the output columns are:
 
 .TP
@@ -86,7 +86,7 @@ in the above formula.  The inverse of this is often called the
 A conventional, dimensionless expression of the decay lifetime: Q = pi
 |\fIfrequency\fI| / \fIdecay\fR.  Q, which stands for "quality
 factor", is the number of periods for the "energy" in the mode (the
-squared amplitude) to decay by exp(-2 pi).  Equivalently, if you look
+squared amplitude) to decay by exp(\-2 pi).  Equivalently, if you look
 at the power spectrum (|Fourier transform|^2), 1/Q is the fractional
 width of the peak at half maximum.
 .TP
@@ -118,7 +118,7 @@ The frequency (and decay) values, both input and output, are specified
 in units of 1/time, where the units of time are determined by the
 sampling interval \fIdt\fR (the time between consecutive inputs).
 \fIdt\fR is by default 1, unless you specify it with the
-.B -t
+.B \-t
 .I dt
 option.
 
@@ -130,28 +130,28 @@ Note that the frequency is the usual 1/period definition; it is not
 the angular frequency.
 .SH OPTIONS
 .TP
-.B -h
+.B \-h
 Display help on the command-line options and usage.
 .TP
-.B -V
+.B \-V
 Print the version number and copyright info for \fBharminv\fR.
 .TP
-.B -v
+.B \-v
 Enable verbose output, printed to standard output as comment lines
 (starting with a "#" character).  Also, any "#" comments in the input
 are echoed to the output.
 .TP
-.B -T
+.B \-T
 Specify period-ranges instead of frequency-ranges on the command line
-(in units of time corresponding to those specified by \fB-t\fR).  The
+(in units of time corresponding to those specified by \fB\-t\fR).  The
 output is still frequency and not period, however.
 .TP
-.B -w
+.B \-w
 Specify angular frequencies instead of frequencies, and output angular
 frequency instead of frequency.  (Angular frequency is frequency
 multiplied by 2 pi).
 .TP
-.B -n
+.B \-n
 Flip the sign of the frequency (and phase) convention used in harminv.
 (The sign of the frequency is only important if you have
 complex-valued input data, in which case the positive and negative
@@ -165,7 +165,7 @@ time used throughout the input and output.  Defaults to 1.0.
 Specify the spectral "density" \fId\fR to search for modes, where a
 density of 1 indicates the usual Fourier resolution.  That is, the
 number of basis functions (which sets an upper bound on the number of
-modes) is given by \fId\fR times (\fIfreq-max\fR - \fIfreq-min\fR)
+modes) is given by \fId\fR times (\fIfreq-max\fR \- \fIfreq-min\fR)
 times \fIdt\fR times the number of samples in your dataset.
 A maximum of 300 is used, however, to prevent the matrices from
 getting too big (you can force a larger number with \fB\-f\fR, below).
@@ -177,7 +177,7 @@ to search for, and in some sense is the density with which the
 bandwidth is initially "searched" for modes.
 
 The default density is 0.0, which means that the number of basis
-functions is determined by -f (which defaults to 100).  This often
+functions is determined by \-f (which defaults to 100).  This often
 corresponds to a much larger density than the usual Fourier
 resolution, but the resulting singularities in the system matrices are automatically removed by harminv.
 .TP
@@ -207,7 +207,7 @@ the largest error among the computed modes.  Defaults to no limit.
 Omit any modes with error (see above) greater than \fIerr\fR.  Defaults
 to 0.1.
 .TP
-.B -F
+.B \-F
 Omit any modes with frequencies outside the specified range.  (Such
 modes are not necessarily spurious, however.)
 .TP
