@@ -81,6 +81,41 @@ it takes a sequence of numbers (real or complex) from standard input
 and a range of frequencies to search and outputs the frequencies it
 finds.
 
+Test Cases/Examples
+===================
+
+The input for harminv should just be a list of numbers (real or
+complex), one per line, as described in the harminv man page.
+
+You can use the program "sines", in the harminv source directory, to
+test harminv and to generate example inputs.  The sines program
+generates a signal consisting of a sum of decaying sinuoids with
+specified complex frequencies.  For example,
+
+	./sines 0.1+0.01i 0.08+0.001i 
+
+generates 10000 data points consisting of a signal with complex
+frequencies 0.1+0.01i and 0.08+0.001i, with amplitudes 1 and 2
+respectively, sampled at time intervals dt=1.0.  If we input this data
+into harminv, it should be able to extract these frequencies, decay
+rates, and amplitudes.
+
+	./sines 0.1+0.01i 0.08+0.001i | harminv 0.05-0.15
+
+The output should be something like:
+
+	frequency, decay constant, Q, amplitude, phase, error
+	0.08, 1.000000e-03, 251.327, 2, 3.14159, 1.064964e-16
+	0.1, 1.000000e-02, 31.4159, 1, -4.31228e-15, 2.265265e-15
+
+as expected.  Note that we have to pass harminv a range of frequencies
+to search, here 0.05-0.15, which shouldn't be too large and should
+normally not include 0.  In most cases, one would also specify the
+sampling interval to harminv via harminv -t <dt>, but in this case we
+don't need to because -t 1.0 is the default.
+
+Run "./sines -h" to get more options.
+
 Library Usage:
 ==============
 
