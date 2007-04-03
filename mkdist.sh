@@ -1,7 +1,5 @@
 #!/bin/sh
 
-cvs update -d
-
 # hackery to build ChangeLog
 darcs changes --summary > ChangeLog
 
