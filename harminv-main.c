@@ -114,7 +114,7 @@ static cmplx *read_input_data(FILE *f, int *n, int verbose)
 	       data[*n] = re + I*im;
 	       ++*n;
 	  }
-     } while (!feof(stdin));
+     } while (!feof(f));
 
      data = (cmplx*) realloc(data, sizeof(cmplx) * *n);
      return data;
