@@ -120,11 +120,7 @@ static cmplx *read_input_data(FILE *f, int *n, int verbose)
      return data;
 }
 
-#ifdef INFINITY
-const double inf = INFINITY;
-#else
-const double inf = 1e100; /* rather use 1.0/0.0, but some systems complain */
-#endif
+static const double inf = HUGE_VAL;
 
 #define DENSITY 0.0
 #define NFMIN 100
