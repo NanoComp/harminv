@@ -50,8 +50,8 @@ extern int harminv_get_num_freqs(harminv_data d);
 extern double harminv_get_freq(harminv_data d, int k);
 extern double harminv_get_Q(harminv_data d, int k);
 extern double harminv_get_decay(harminv_data d, int k);
-extern harminv_complex harminv_get_omega(harminv_data d, int k);
-extern harminv_complex harminv_get_amplitude(harminv_data d, int k);
+extern void harminv_get_omega(harminv_complex *omega, harminv_data d, int k);
+extern void harminv_get_amplitude(harminv_complex *amplitude, harminv_data d, int k);
 extern double harminv_get_freq_error(harminv_data d, int k);
 
 /* the following routines are undocumented and not recommended */
