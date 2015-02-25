@@ -1,7 +1,9 @@
 # Harminv
 
 Harmonic Inversion of Time Signals by the Filter Diagonalization Method (FDM),
-implemented by [Steven G. Johnson](http://math.mit.edu/~stevenj/), Massachusetts Institute of Technology.
+implemented by [Steven G. Johnson](http://math.mit.edu/~stevenj/), Massachusetts Institute of Technology.  See also the
+
+* [Harminv Home Page](http://ab-initio.mit.edu/harminv)
 
 ## Introduction
 
@@ -69,7 +71,7 @@ the data or its spectrum.)
 
 ## Program Usage
 
-The usage of the harminv program is described by its man page (`man
+The usage of the harminv program is described by [the harminv man page](http://ab-initio.mit.edu/harminv/harminv-man.html) (`man
 harminv`), included in the installation below.  To briefly summarize,
 it takes a sequence of numbers (real or complex) from standard input
 and a range of frequencies to search and outputs the frequencies it
