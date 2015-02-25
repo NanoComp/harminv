@@ -7,7 +7,7 @@ noinst_PROGRAMS = sines
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harminv.pc
 
-ACLOCAL_AMFLAGS=-I .
+ACLOCAL_AMFLAGS=-I m4
 
 EXTRA_DIST = COPYRIGHT harminv.pc.in acx_blas.m4 acx_lapack.m4
 

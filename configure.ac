@@ -1,8 +1,10 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT(harminv, 1.3.1, stevenj@alum.mit.edu)
-AM_INIT_AUTOMAKE(1.6)
+AM_INIT_AUTOMAKE([foreign silent-rules 1.11])
+AM_SILENT_RULES(yes)
 AC_CONFIG_SRCDIR(harminv.c)
 AM_CONFIG_HEADER(config.h)
+AC_CONFIG_MACRO_DIR([m4])
 AM_MAINTAINER_MODE
 
 # Shared-library version number; indicates api compatibility, and is
@@ -48,6 +50,8 @@ AC_CHECK_HEADERS(unistd.h getopt.h)
 AC_ARG_WITH(cxx, [  --with-cxx=<dir>        force use of C++ and complex<double>], with_cxx=$withval, with_cxx=no)
 
 if test "x$with_cxx" = "xno"; then
+
+AC_PROG_CC_C99
 
 have_c_complex=yes
 AC_CHECK_HEADERS(complex.h)

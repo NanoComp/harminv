@@ -1,0 +1,45 @@
+*.tar.gz
+*.exe
+*.dll
+*.do
+*.o
+*.lo
+*.a
+*.la
+*.dylib
+*.dSYM
+*.zip
+*.native
+
+# autotools stuff
+Makefile
+Makefile.in
+.deps
+.libs
+stamp-h*
+install-sh
+libtool
+ltmain.sh
+m4/libtool.m4
+m4/ltoptions.m4
+m4/ltsugar.m4
+m4/ltversion.m4
+m4/lt~obsolete.m4
+configure
+config.*
+autom4te.cache
+INSTALL
+aclocal.m4
+depcomp
+missing
+py-compile
+compile
+test-driver
+
+# other generated files
+harminv.pc
+copyright.h
+
+# programs
+sines
+harminv
