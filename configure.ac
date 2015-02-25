@@ -128,8 +128,8 @@ AC_CHECK_LIB(m, sqrt)
 
 # Checks for BLAS/LAPACK libraries:
 
-ACX_BLAS([], [AC_MSG_ERROR([BLAS library not found])])
-ACX_LAPACK([], [AC_MSG_ERROR([LAPACK library not found])])
+AX_BLAS([], [AC_MSG_ERROR([BLAS library not found])])
+AX_LAPACK([], [AC_MSG_ERROR([LAPACK library not found])])
 
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
 
