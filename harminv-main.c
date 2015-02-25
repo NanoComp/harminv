@@ -417,8 +417,13 @@ int main(int argc, char **argv)
 	  if (verbose)
 	       printf("# searching frequency range %g - %g\n", fmin, fmax);
 
-	  ok_d.fmin = fmin*dt;
-	  ok_d.fmax = fmax*dt;
+	  ok_d.fmin = fabs(fmin*dt);
+	  ok_d.fmax = fabs(fmax*dt);
+          if (ok_d.fmin > ok_d.fmax) {
+	       double dummy = ok_d.fmin;
+	       ok_d.fmin = ok_d.fmax;
+	       ok_d.fmax = dummy;
+          }
 
 	  nf = (fmax - fmin) * dt * n * density;
 	  if (nf > NFMAX) nf = NFMAX;
