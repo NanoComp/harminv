@@ -1,9 +1,9 @@
-= Harminv =
+# Harminv
 
 Harmonic Inversion of Time Signals by the Filter Diagonalization Method (FDM),
 implemented by [Steven G. Johnson](http://math.mit.edu/~stevenj/), Massachusetts Institute of Technology.
 
-== Introduction ==
+## Introduction
 
 Harminv is a free program (and accompanying library) to solve the
 problem of "harmonic inversion."  Given a discrete, finite-length
@@ -67,7 +67,7 @@ problem.  (Even closely-spaced frequencies and/or weak decay rates can
 be resolved much more reliably by FDM than by straightforward fits of
 the data or its spectrum.)
 
-== Program Usage ==
+## Program Usage
 
 The usage of the harminv program is described by its man page (`man
 harminv`), included in the installation below.  To briefly summarize,
@@ -75,7 +75,7 @@ it takes a sequence of numbers (real or complex) from standard input
 and a range of frequencies to search and outputs the frequencies it
 finds.
 
-== Test Cases/Examples == 
+## Test Cases/Examples
 
 The input for harminv should just be a list of numbers (real or
 complex), one per line, as described in the harminv man page.
@@ -107,9 +107,9 @@ normally not include 0.  In most cases, one would also specify the
 sampling interval to harminv via `harminv -t <dt>`, but in this case we
 don't need to because `-t 1.0` is the default.
 
-Run "./sines -h" to get more options.
+Run `./sines -h` to get more options.
 
-== Library Usage ==
+## Library Usage
 
 The usage of the library `-lharminv` is analogous to the program.  In C
 or C++, you first `#include <harminv.h>`, then specify the data and the
@@ -177,7 +177,7 @@ A crude estimate of the relative error in the (complex) frequency is:
 As described in `man harminv`, this is not really an error bar, and
 should be treated more as a figure of merit (smaller is better).
 
-=== Linking ===
+### Linking
 
 To link to the library, you need to not only link to `-lharminv`, but
 also to the math library, the BLAS and LAPACK libraries (see below),
@@ -200,7 +200,7 @@ and the configure script automatically switched to C++, then you will
 need to link to harminv with the C++ linker, even if your program is
 written in C, in order to link the C++ libraries.
 
-== Installation ==
+## Installation
 
 Harminv is designed to run on any Unix-like system (GNU/Linux is
 fine).  (It may also be possible to compile it on other systems, as it
