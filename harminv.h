@@ -18,6 +18,11 @@
 #ifndef HARMINV_H
 #define HARMINV_H
 
+/* the following need to be kept in sync with configure.ac: */
+#define HARMINV_VERSION_MAJOR 1
+#define HARMINV_VERSION_MINOR 4
+#define HARMINV_VERSION_PATCH 0
+
 /**************************************************************************/
 
 #if defined(__cplusplus)
