@@ -4,6 +4,6 @@ compiler:
   - gcc
 before_install:
   - sudo apt-get update -qq -y
-  - sudo apt-get install liblapack-dev libblas-dev -y
+  - sudo apt-get install liblapack-dev libblas-dev automake autoconf libtool -y
 script:
-  - ./configure && make && make check
+  - sh autogen.sh && ./configure && make && make check
