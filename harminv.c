@@ -839,21 +839,23 @@ double harminv_get_Q(harminv_data d, int k)
 	    / (2 * harminv_get_decay(d, k)));
 }
 
-cmplx harminv_get_omega(harminv_data d, int k)
+void harminv_get_omega(cmplx *omega, harminv_data d, int k)
 {
      CHECK(d->nfreqs >= 0, "haven't computed eigensolutions yet");
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_omega");
-     return(I * clog(d->u[k]));
+     *omega = (I * clog(d->u[k]));
+     return;
 }
 
-cmplx harminv_get_amplitude(harminv_data d, int k)
+void harminv_get_amplitude(cmplx *amplitude, harminv_data d, int k)
 {
      CHECK(k >= 0 && k < d->nfreqs,
 	   "argument out of range in harminv_get_amplitude");
      if (!d->amps)
 	  d->amps = harminv_compute_amplitudes(d);
-     return d->amps[k];
+     *amplitude = d->amps[k];
+     return;
 }
 
 double harminv_get_freq_error(harminv_data d, int k)

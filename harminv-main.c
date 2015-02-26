@@ -175,6 +175,7 @@ static int compar(const void *a, const void *b)
 {
      const int *ia = (const int *) a;
      const int *ib = (const int *) b;
+     cmplx aa, ab;
 
      switch (sortby) {
 	 case SORT_FREQUENCY:
@@ -185,8 +186,9 @@ static int compar(const void *a, const void *b)
 	      return cmp(harminv_get_freq_error(hd, *ia), 
 			 harminv_get_freq_error(hd, *ib));
 	 case SORT_AMPLITUDE:
-	      return cmp(cabs(harminv_get_amplitude(hd, *ia)), 
-			 cabs(harminv_get_amplitude(hd, *ib)));
+	      harminv_get_amplitude(&aa, hd, *ia);
+	      harminv_get_amplitude(&ab, hd, *ia);
+	      return cmp(cabs(aa), cabs(ab));
 	 case SORT_Q:
 	      return cmp(harminv_get_freq(hd,*ia) / harminv_get_decay(hd,*ia),
 			 harminv_get_freq(hd,*ib) / harminv_get_decay(hd,*ib));
@@ -208,6 +210,7 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
      mode_ok_data *ok_d = (mode_ok_data *) ok_d_;
      double errk, ampk, f;
      int ok;
+     cmplx aa;
 
      if (k == -1) { /* initialize */
 	  int i;
@@ -215,12 +218,14 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 	  if (!harminv_get_num_freqs(d))
 	       return 0;
 	  ok_d->min_err = harminv_get_freq_error(d, 0);;
-	  ok_d->max_amp = cabs(harminv_get_amplitude(d, 0));
+	  harminv_get_amplitude(&aa, d, 0);
+	  ok_d->max_amp = cabs(aa);
 	  for (i = 1; i < harminv_get_num_freqs(d); ++i) {
 	       double err, amp;
 	       if ((err = harminv_get_freq_error(d, i)) < ok_d->min_err)
 		    ok_d->min_err = err;
-	       if ((amp = cabs(harminv_get_amplitude(d, i))) > ok_d->max_amp)
+	       harminv_get_amplitude(&aa, d, i);
+	       if ((amp = cabs(aa)) > ok_d->max_amp)
 		    ok_d->max_amp = amp;
 	  
 	  }
@@ -241,7 +246,8 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 
      f = fabs(harminv_get_freq(d, k));
      errk = harminv_get_freq_error(d, k);
-     ampk = cabs(harminv_get_amplitude(d, k));
+     harminv_get_amplitude(&aa, d, k);
+     ampk = cabs(aa);
 
      ok = ((!ok_d->only_f_inrange || (f >= ok_d->fmin && f <= ok_d->fmax))
 	   && errk <= ok_d->err_thresh
@@ -461,7 +467,7 @@ int main(int argc, char **argv)
 #endif
 	       freq = harminv_get_freq(hd, j) / dt;
 	       decay = harminv_get_decay(hd, j) / fabs(dt);
-	       amp = harminv_get_amplitude(hd, j);
+	       harminv_get_amplitude(&amp, hd, j);
 	       err = harminv_get_freq_error(hd, j);
 	       printf("%g, %e, %g, %g, %g, %e\n",
 		      freq * (specify_omega ? TWOPI : 1.0), decay,
