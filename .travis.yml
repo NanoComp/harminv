@@ -1,0 +1,9 @@
+language: c
+compiler:
+  - clang
+  - gcc
+before_install:
+  - sudo apt-get update -qq -y
+  - sudo apt-get install liblapack-dev libblas-dev -y
+script:
+  -./configure && make && make check
