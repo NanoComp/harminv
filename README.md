@@ -162,7 +162,7 @@ constant (as defined in `man harminv`) are returned by:
 Alternative, you can get the complex angular frequency (omega =
 2*pi*freq - i*decay) by:
 
-    harminv_complex harminv_get_omega(harminv_data d, int k);
+    void harminv_get_omega(harminv_complex *omega, harminv_data d, int k);
 
 You can get the "quality factor" Q (pi |freq| / decay) by:
 
@@ -170,7 +170,7 @@ You can get the "quality factor" Q (pi |freq| / decay) by:
 
 The complex amplitude (|amp| * exp(-I phase)) for each k is returned by:
 
-    harminv_complex harminv_get_amplitude(harminv_data d, int k);
+    void harminv_get_amplitude(harminv_complex *amplitude, harminv_data d, int k);
 
 A crude estimate of the relative error in the (complex) frequency is:
 
