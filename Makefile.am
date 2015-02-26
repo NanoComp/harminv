@@ -9,7 +9,7 @@ pkgconfig_DATA = harminv.pc
 
 ACLOCAL_AMFLAGS=-I m4
 
-EXTRA_DIST = COPYRIGHT harminv.pc.in acx_blas.m4 acx_lapack.m4
+EXTRA_DIST = COPYRIGHT harminv.pc.in m4 sines-test.sh
 
 libharminv_la_SOURCES = harminv.c harminv.h harminv-int.h check.h
 libharminv_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@
@@ -20,6 +20,8 @@ harminv_LDADD = libharminv.la
 sines_SOURCES = sines.c
 
 BUILT_SOURCES = copyright.h
+
+TESTS = sines-test.sh
 
 # Generate built sources only in maintainer mode
 if MAINTAINER_MODE

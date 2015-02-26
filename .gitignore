@@ -43,3 +43,7 @@ copyright.h
 # programs
 sines
 harminv
+
+# test output
+*.log
+*.trs
