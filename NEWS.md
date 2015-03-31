@@ -1,6 +1,6 @@
 ## Harminv 1.4
 
-26 February 2015
+31 March 2015
 
 * Change `get_omega` and `get_amplitude` functions to return complex results
   via a pointer argument rather than a return value, since the latter
