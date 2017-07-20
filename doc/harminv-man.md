@@ -34,7 +34,7 @@ which reads a sequence of samples, spaced at 0.02 time intervals (in ms, say, co
 
 `harminv` writes four comma-delimited columns to standard output, one line for each mode: frequency, decay constant, Q, amplitude, phase, and error. Each mode corresponds to a function of the form:
 
-    amplitude * exp[-i (2 pi frequency t - phase) - decay t]
+    amplitude * exp[-i (2π frequency t - phase) - decay t]
 
 Here, *i* is sqrt(-1), *t* is the time (see below for units), and the other parameters in the output columns are:
 
