@@ -1,7 +1,7 @@
 ![harminv logo](doc/Harminv.gif)
-[![Build Status](https://travis-ci.org/stevengj/harminv.png)](https://travis-ci.org/stevengj/harminv)
 
 # Harminv
+[![Build Status](https://travis-ci.org/stevengj/harminv.png)](https://travis-ci.org/stevengj/harminv)
 
 Harmonic Inversion of Time Signals by the Filter Diagonalization Method (FDM),
 implemented by [Steven G. Johnson](http://math.mit.edu/~stevenj/), Massachusetts Institute of Technology.
