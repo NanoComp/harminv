@@ -36,10 +36,10 @@ experimental data and numerical simulations of quantum mechanics or [electromagn
 
 ## Download
 
-The latest version is Harminv 1.4, which can be downloaded in
+The latest version is Harminv 1.4.1, which can be downloaded in
 source-code form at:
 
- * <http://ab-initio.mit.edu/harminv/harminv-1.4.tar.gz>
+ * https://github.com/stevengj/harminv/releases/download/v1.4.1/harminv-1.4.1.tar.gz
 
 What's new in each version is described in the [Harminv release
 notes](NEWS.md). Harminv is distributed under
