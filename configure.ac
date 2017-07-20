@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # note: keep version number in sync with harminv.h
-AC_INIT(harminv, 1.4, stevenj@alum.mit.edu)
+AC_INIT(harminv, 1.4.1, stevenj@alum.mit.edu)
 
 AM_INIT_AUTOMAKE([foreign silent-rules 1.11])
 AM_SILENT_RULES(yes)
@@ -122,7 +122,7 @@ AC_CHECK_TYPES([long double])
 
 ###########################################################################
 
-AC_PROG_LIBTOOL                                                                                
+AC_PROG_LIBTOOL
 ###########################################################################
 
 AC_CHECK_LIB(m, sqrt)

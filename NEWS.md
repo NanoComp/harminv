@@ -1,3 +1,9 @@
+## Harminv 1.4.1
+
+20 July 2017
+
+* Converted all documentation to Markdown format and moved to Github.
+
 ## Harminv 1.4
 
 31 March 2015

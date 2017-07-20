@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 Massachusetts Institute of Technology.
+/* Copyright (C) 2017 Massachusetts Institute of Technology.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 /* the following need to be kept in sync with configure.ac: */
 #define HARMINV_VERSION_MAJOR 1
 #define HARMINV_VERSION_MINOR 4
-#define HARMINV_VERSION_PATCH 0
+#define HARMINV_VERSION_PATCH 1
 
 /**************************************************************************/
 
