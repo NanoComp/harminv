@@ -9,7 +9,7 @@ pkgconfig_DATA = harminv.pc
 
 ACLOCAL_AMFLAGS=-I m4
 
-EXTRA_DIST = COPYRIGHT harminv.pc.in m4 sines-test.sh
+EXTRA_DIST = README.md NEWS.md doc COPYRIGHT harminv.pc.in m4 sines-test.sh
 
 libharminv_la_SOURCES = harminv.c harminv.h harminv-int.h check.h
 libharminv_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@
