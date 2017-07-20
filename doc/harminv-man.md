@@ -81,13 +81,10 @@ Note that the frequency is the usual 1/period definition; it is not the angular 
  * `-t dt` — Specify the sampling interval `dt`; this determines the units of time used throughout the input and output. Defaults to 1.0.
 
  * `-d d` — Specify the spectral "density" d to search for modes, where a density of 1 indicates the usual Fourier resolution. That is, the number of basis functions (which sets an upper bound on the number of modes) is given by `d × (freq-max - freq-min) × dt × (number of samples)`. A maximum of 300 is used, however, to prevent the matrices from getting too big (you can force a larger number with `-f`, below).
-
   - Note that the frequency resolution of the outputs is not limited by the spectral density, and can generally be much greater than the Fourier resolution. The density determines how many modes, at most, to search for, and in some sense is the density with which the bandwidth is initially "searched" for modes.
-
   - The default density is 1.1 (or lower, to keep within the 300 maximum), which is usually a good value for most applications. If you set the density too high, then the matrices become large and singular; if you set the density too low, then you risk missing modes.
 
  * `-f nf` — Specify a lower bound nf on the number of spectral basis functions (defaults to 2), setting a lower bound on the number of modes to search for. This option is sometimes a more convenient way to specify the number of basis functions than the `-d` option, above.
-
   - `-f` also allows you to employ more than 300 basis functions, but careful: the computation time scales as O(N nf) + O(nf^3), where N is the number of samples, and very large matrices can also have degraded accuracy.
 
  * `-s sort` — Specify how the outputs are sorted, where `sort` is one of `frequency`/`error`/`Q`/`decay`/`amplitude`. (Only the first character of `sort` matters, e.g. `-s a` sorts by amplitude.) All sorts are in ascending order. The default is to sort by frequency (`-s f`).
