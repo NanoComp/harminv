@@ -1,7 +1,7 @@
 ![harminv logo](doc/Harminv.gif)
 
 # Harminv
-[![Build Status](https://travis-ci.org/stevengj/harminv.png)](https://travis-ci.org/stevengj/harminv)
+[![Build Status](https://travis-ci.org/NanoComp/harminv.png)](https://travis-ci.org/NanoComp/harminv)
 
 Harmonic Inversion of Time Signals by the Filter Diagonalization Method (FDM),
 implemented by [Steven G. Johnson](http://math.mit.edu/~stevenj/), Massachusetts Institute of Technology.
@@ -39,7 +39,7 @@ experimental data and numerical simulations of quantum mechanics or [electromagn
 The latest version is Harminv 1.4.1, which can be downloaded in
 source-code form at:
 
- * https://github.com/stevengj/harminv/releases/download/v1.4.1/harminv-1.4.1.tar.gz
+ * https://github.com/NanoComp/harminv/releases/download/v1.4.1/harminv-1.4.1.tar.gz
 
 What's new in each version is described in the [Harminv release
 notes](NEWS.md). Harminv is distributed under
@@ -47,7 +47,7 @@ the [GNU GPL](http://www.gnu.org/copyleft/gpl.html) and comes with **NO
 WARRANTY** (see the license for more details). Development sources can
 be found on GitHub:
 
- * [Harminv GitHub repository](https://github.com/stevengj/harminv)
+ * [Harminv GitHub repository](https://github.com/NanoComp/harminv)
 
 It would be courteous of you to **cite Harminv** and its author in any
 publication for which you find it useful, in addition to citing a
@@ -65,7 +65,7 @@ A Python interface to Harminv was developed by Aaron O'Leary:
 [pharminv](https://github.com/aaren/harminv).
 
 Please file bug reports or feature requests as [harminv Github
-issues](https://github.com/stevengj/harminv/issues).
+issues](https://github.com/NanoComp/harminv/issues).
 
 ## Usage
 

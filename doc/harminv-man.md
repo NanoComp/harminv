@@ -82,7 +82,7 @@ Note that the frequency is the usual 1/period definition; it is not the angular 
 
 ## Bugs
 
-Report bugs by [filing a github issue](https://github.com/stevengj/harminv).
+Report bugs by [filing a github issue](https://github.com/NanoComp/harminv).
 
 ## Authors
 
