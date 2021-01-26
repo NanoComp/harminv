@@ -460,7 +460,7 @@ static cmplx symmetric_dot(int n, cmplx *x, cmplx *y)
    conjugation). */
 static void solve_eigenvects(int n, const cmplx *A0, cmplx *V, cmplx *v)
 {
-     int lwork, info;
+     int lwork, info = 0;
      cmplx *work;
      double *rwork;
      cmplx *A;
