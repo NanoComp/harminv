@@ -1,12 +1,12 @@
 # Process this file with autoconf to produce a configure script.
 
 # note: keep version number in sync with harminv.h
-AC_INIT(harminv, 1.4.1, stevenj@alum.mit.edu)
+AC_INIT([harminv],[1.4.1],[stevenj@alum.mit.edu])
 
 AM_INIT_AUTOMAKE([foreign silent-rules 1.11])
 AM_SILENT_RULES(yes)
 AC_CONFIG_SRCDIR(harminv.c)
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 AM_MAINTAINER_MODE
 
@@ -14,11 +14,11 @@ AM_MAINTAINER_MODE
 # *not* the same as the "human" version number.  CURRENT:REVISION:AGE
 SHARED_VERSION_INFO="3:0:0"
 AC_SUBST(SHARED_VERSION_INFO)
-AM_ENABLE_SHARED(no) dnl shared libs cause too many headaches to be default
+AC_ENABLE_SHARED([no]) dnl shared libs cause too many headaches to be default
 
 ##############################################################################
 
-AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug,compile for debugging])],
+AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug,compile for debugging])],
 	      enable_debug=$enableval, enable_debug=no)
 if test "$enable_debug" = "yes"; then
 	CFLAGS="-g"
@@ -54,15 +54,14 @@ AC_ARG_WITH(cxx, [  --with-cxx=<dir>        force use of C++ and complex<double>
 
 if test "x$with_cxx" = "xno"; then
 
-AC_PROG_CC_C99
+AC_PROG_CC
 
 have_c_complex=yes
 AC_CHECK_HEADERS(complex.h)
 AC_CACHE_CHECK([for C complex keyword], acx_cv_c_complex,
  [acx_cv_c_complex=unsupported
   for acx_kw in complex _Complex __complex__; do
-    AC_TRY_COMPILE([#include <complex.h>], [float $acx_kw foo;],
-                   [acx_cv_c_complex=$acx_kw; break])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <complex.h>]], [[float $acx_kw foo;]])],[acx_cv_c_complex=$acx_kw; break],[])
   done
  ])
 
@@ -77,9 +76,7 @@ else
   AC_CACHE_CHECK([for C complex I constant], acx_cv_c_complex_I,
    [acx_cv_c_complex_I=unsupported
    for acx_kw in I "(1.0i)"; do
-     AC_TRY_COMPILE([#include <complex.h>],
-                    [float $acx_cv_c_complex foo = $acx_kw;],
-                    [acx_cv_c_complex_I=$acx_kw; break])
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <complex.h>]], [[float $acx_cv_c_complex foo = $acx_kw;]])],[acx_cv_c_complex_I=$acx_kw; break],[])
    done
   ])
 
@@ -94,8 +91,7 @@ else
 
   AC_CACHE_CHECK([for CX_LIMITED_RANGE_ON macro], acx_cv_c_cx_limited_range_on,
    [acx_cv_c_cx_limited_range_on=no
-    AC_TRY_COMPILE([#include <complex.h>],
-                   [CX_LIMITED_RANGE_ON;], [acx_cv_c_cx_limited_range_on=yes])])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <complex.h>]], [[CX_LIMITED_RANGE_ON;]])],[acx_cv_c_cx_limited_range_on=yes],[])])
   if test "$acx_cv_c_cx_limited_range_on" = "no"; then
      AC_DEFINE(CX_LIMITED_RANGE_ON, 0, [Define to no-op if C99 macro is not available.])
   fi
@@ -122,7 +118,7 @@ AC_CHECK_TYPES([long double])
 
 ###########################################################################
 
-AC_PROG_LIBTOOL
+LT_INIT
 ###########################################################################
 
 AC_CHECK_LIB(m, sqrt)
