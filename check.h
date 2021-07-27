@@ -29,7 +29,7 @@
 
 #define CHK_MALLOC(p, t, n) do {                              \
      size_t CHK_MALLOC_n_tmp = (n);                           \
-     (p) = (t *) malloc(sizeof(t) * CHK_MALLOC_n_tmp);        \
+     (p) = (t *) calloc(CHK_MALLOC_n_tmp, sizeof(t));         \
      CHECK((p) || CHK_MALLOC_n_tmp == 0, "out of memory!");   \
 } while (0)
 
