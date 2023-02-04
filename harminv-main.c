@@ -43,7 +43,7 @@ static int eat_whitespace(FILE *f, int echo_comments)
 	       c = getc(f);
 	       newlines += c == '\n';
 	  } while (isspace(c) || c == ',');
-	  
+
 	  if (c == '#') { /* # begins comments that extend to the newline */
 	       if (echo_comments)
 		    putc(c, stdout);
@@ -59,8 +59,10 @@ static int eat_whitespace(FILE *f, int echo_comments)
 	       } while (c != EOF && c != '\n');
 	  }
      } while (isspace (c));
-     ungetc(c, f); /* put back the last character read */
-     newlines -= c == '\n';
+
+	 ungetc(c, f); /* put back the last character read */
+	 newlines -= c == '\n';
+
      return newlines;
 }
 
@@ -87,9 +89,8 @@ static cmplx *read_input_data(FILE *f, int *n, int verbose)
     *n = 0;
 
      do {
-	  double re, im;
+	  double re=0.0, im=0.0;
 	  int nread;
-
 	  line += eat_whitespace(f, verbose);
 	  nread = fscanf(f, "%lg", &re);
 	  if (nread == 1 && eat_plus(f)) {
@@ -102,7 +103,7 @@ static cmplx *read_input_data(FILE *f, int *n, int verbose)
 	       if (nread < 1) {
 		    fprintf(stderr, "harminv: invalid input on line %d.\n",
 			    line);
-		    free(data); 
+		    free(data);
 		    *n = 0;
 		    return NULL;
 	       }
@@ -183,7 +184,7 @@ static int compar(const void *a, const void *b)
 	 case SORT_DECAY:
 	      return cmp(harminv_get_decay(hd,*ia), harminv_get_decay(hd,*ib));
 	 case SORT_ERROR:
-	      return cmp(harminv_get_freq_error(hd, *ia), 
+	      return cmp(harminv_get_freq_error(hd, *ia),
 			 harminv_get_freq_error(hd, *ib));
 	 case SORT_AMPLITUDE:
 	      harminv_get_amplitude(&aa, hd, *ia);
@@ -227,7 +228,7 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 	       harminv_get_amplitude(&aa, d, i);
 	       if ((amp = cabs(aa)) > ok_d->max_amp)
 		    ok_d->max_amp = amp;
-	  
+
 	  }
 	  return 0;
      }
@@ -236,7 +237,7 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 	       printf("# harminv: %d/%d modes are ok: "
 		      "errs <= %e and %e * %e\n, "
 		      "amps >= %g, %e * %g, "
-		      "|Q| >= %g\n", 
+		      "|Q| >= %g\n",
 		      ok_d->num_ok, harminv_get_num_freqs(d),
 		      ok_d->err_thresh, ok_d->rel_err_thresh, ok_d->min_err,
 		      ok_d->amp_thresh, ok_d->rel_amp_thresh, ok_d->max_amp,
@@ -251,7 +252,7 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 
      ok = ((!ok_d->only_f_inrange || (f >= ok_d->fmin && f <= ok_d->fmax))
 	   && errk <= ok_d->err_thresh
-	   && errk <= ok_d->min_err * ok_d->rel_err_thresh
+	   && (!isfinite(ok_d->rel_err_thresh) || errk <= ok_d->min_err * ok_d->rel_err_thresh)
 	   && ampk >= ok_d->amp_thresh
 	   && ampk >= ok_d->rel_amp_thresh * ok_d->max_amp
 	   && fabs(harminv_get_Q(d,k)) >= ok_d->Q_thresh);
@@ -372,7 +373,7 @@ int main(int argc, char **argv)
           usage(stderr);
           return EXIT_FAILURE;
      }
-     
+
      /* harminv requires nf > 1 */
      if (nfmin < 2) nfmin = 2;
 
@@ -389,7 +390,7 @@ int main(int argc, char **argv)
      printf("frequency, decay constant, Q, amplitude, phase, error\n");
 
      ok_d.verbose = verbose;
-	  
+
      for (iarg = optind; iarg < argc; ++iarg) {
 	  double fmin, fmax;
 	  int i;
@@ -435,11 +436,11 @@ int main(int argc, char **argv)
 	  if (nf > NFMAX) nf = NFMAX;
 	  if (nf < nfmin) nf = nfmin;
 	  if (verbose)
-	       printf("# using %d spectral basis functions, density %g\n", 
+	       printf("# using %d spectral basis functions, density %g\n",
 		      nf, nf / ((fmax - fmin) * dt * n));
 
 	  hd = harminv_data_create(n, data, fmin*dt, fmax*dt, nf);
-	  
+
 #if SOLVE_OK_ONLY
 	  harminv_solve_ok_modes(hd, mode_ok, &ok_d);
 #elif SOLVE_ONCE_ONLY
@@ -451,7 +452,7 @@ int main(int argc, char **argv)
 	  mode_ok(hd, -1, &ok_d); /* initialize ok_d */
 
 	  CHK_MALLOC(isort, int, harminv_get_num_freqs(hd));
-	  for (i = 0; i < harminv_get_num_freqs(hd); ++i) 
+	  for (i = 0; i < harminv_get_num_freqs(hd); ++i)
 	       isort[i] = i;
 	  qsort(isort, harminv_get_num_freqs(hd), sizeof(int), compar);
 
