@@ -59,8 +59,13 @@ static int eat_whitespace(FILE *f, int echo_comments)
 	       } while (c != EOF && c != '\n');
 	  }
      } while (isspace (c));
-     ungetc(c, f); /* put back the last character read */
-     newlines -= c == '\n';
+	 if (c==-1){
+		return -1;
+  	 }
+	 else{
+		ungetc(c, f); /* put back the last character read */
+		newlines -= c == '\n';
+	 }
      return newlines;
 }
 
@@ -83,14 +88,17 @@ static int eat_i(FILE *f)
 static cmplx *read_input_data(FILE *f, int *n, int verbose)
 {
     cmplx *data = NULL;
-    int line = 1, n_alloc = 0;
+    int line = 1, n_alloc = 0, newlines=0;
     *n = 0;
 
      do {
-	  double re, im;
+	  double re=0.0, im=0.0;
 	  int nread;
-
-	  line += eat_whitespace(f, verbose);
+	  newlines =  eat_whitespace(f, verbose);
+	  if (newlines == -1)
+		break;
+	  
+	  line += newlines;
 	  nread = fscanf(f, "%lg", &re);
 	  if (nread == 1 && eat_plus(f)) {
 	       nread = fscanf(f, "%lg", &im);
@@ -251,7 +259,7 @@ static int mode_ok(harminv_data d, int k, void *ok_d_)
 
      ok = ((!ok_d->only_f_inrange || (f >= ok_d->fmin && f <= ok_d->fmax))
 	   && errk <= ok_d->err_thresh
-	   && errk <= ok_d->min_err * ok_d->rel_err_thresh
+	   && (!isfinite(ok_d->rel_err_thresh) || errk <= ok_d->min_err * ok_d->rel_err_thresh)
 	   && ampk >= ok_d->amp_thresh
 	   && ampk >= ok_d->rel_amp_thresh * ok_d->max_amp
 	   && fabs(harminv_get_Q(d,k)) >= ok_d->Q_thresh);
