@@ -84,15 +84,16 @@ static int eat_i(FILE *f)
 static cmplx *read_input_data(FILE *f, int *n, int verbose)
 {
     cmplx *data = NULL;
-    int line = 1, n_alloc = 0, newlines=0;
+    int line = 1, n_alloc = 0;
     *n = 0;
 
      do {
 	  double re=0.0, im=0.0;
 	  int nread;
-	  newlines = eat_whitespace(f, verbose);
-	  if (newlines == -1) break;
-	  line += newlines;
+	  int whitespace_lines = eat_whitespace(f, verbose);
+	  if (whitespace_lines == -1) break; /* eof */
+	  line += whitespace_lines;
+	  
 	  nread = fscanf(f, "%lg", &re);
 	  if (nread == 1 && eat_plus(f)) {
 	       nread = fscanf(f, "%lg", &im);
