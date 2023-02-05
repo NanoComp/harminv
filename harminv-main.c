@@ -59,13 +59,10 @@ static int eat_whitespace(FILE *f, int echo_comments)
 	       } while (c != EOF && c != '\n');
 	  }
      } while (isspace (c));
-	 if (c==-1){
-		return -1;
-  	 }
-	 else{
-		ungetc(c, f); /* put back the last character read */
-		newlines -= c == '\n';
-	 }
+	 
+	 ungetc(c, f); /* put back the last character read */
+	 newlines -= c == '\n';
+	 
      return newlines;
 }
 
@@ -94,11 +91,7 @@ static cmplx *read_input_data(FILE *f, int *n, int verbose)
      do {
 	  double re=0.0, im=0.0;
 	  int nread;
-	  newlines =  eat_whitespace(f, verbose);
-	  if (newlines == -1)
-		break;
-	  
-	  line += newlines;
+	  line += eat_whitespace(f, verbose);
 	  nread = fscanf(f, "%lg", &re);
 	  if (nread == 1 && eat_plus(f)) {
 	       nread = fscanf(f, "%lg", &im);
