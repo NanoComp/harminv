@@ -59,7 +59,7 @@ static int eat_whitespace(FILE *f, int echo_comments)
 	       } while (c != EOF && c != '\n');
 	  }
      } while (isspace (c));
-     if (c == -1) return -1;
+     if (c == -1) return -1; /* eof */
      ungetc(c, f); /* put back the last character read */
      newlines -= c == '\n';
      return newlines;
