@@ -90,10 +90,8 @@ static cmplx *read_input_data(FILE *f, int *n, int verbose)
      do {
 	  double re=0.0, im=0.0;
 	  int nread;
-	  newlines =  eat_whitespace(f, verbose);
-	  if (newlines == -1)
-		break;
-	  
+	  newlines = eat_whitespace(f, verbose);
+	  if (newlines == -1) break;
 	  line += newlines;
 	  nread = fscanf(f, "%lg", &re);
 	  if (nread == 1 && eat_plus(f)) {
