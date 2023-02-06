@@ -1,5 +1,12 @@
 # Harminv Release Notes
 
+## Harminv 1.4.2
+
+5 February 2023
+
+* Fix comparison to infinite threshold ([#12](https://github.com/NanoComp/harminv/pull/12))
+* Minor documentation updates.
+
 ## Harminv 1.4.1
 
 20 July 2017
