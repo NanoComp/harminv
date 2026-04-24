@@ -166,7 +166,7 @@ static int compar(const void *a, const void *b) {
     case SORT_ERROR: return cmp(harminv_get_freq_error(hd, *ia), harminv_get_freq_error(hd, *ib));
     case SORT_AMPLITUDE:
       harminv_get_amplitude(&aa, hd, *ia);
-      harminv_get_amplitude(&ab, hd, *ia);
+      harminv_get_amplitude(&ab, hd, *ib);
       return cmp(cabs(aa), cabs(ab));
     case SORT_Q:
       return cmp(harminv_get_freq(hd, *ia) / harminv_get_decay(hd, *ia),
