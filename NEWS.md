@@ -1,5 +1,11 @@
 # Harminv Release Notes
 
+## Harminv 1.4.3
+
+25 April 2026
+
+* Bugfix in sorting by amplitude ([#15](https://github.com/NanoComp/harminv/pull/15)).
+
 ## Harminv 1.4.2
 
 5 February 2023
